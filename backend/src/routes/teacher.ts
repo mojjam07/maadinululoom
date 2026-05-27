@@ -1,0 +1,177 @@
+import { Router } from 'express'
+import { supabaseAdmin } from '../supabaseAdmin'
+import { requireAuth } from '../middleware/requireAuth'
+
+// Teacher portal endpoints (Phase 3 extra)
+export const teacherRouter = Router()
+
+// Helpers
+function getTeacherIdFromProfile(profileId: string) {
+  return supabaseAdmin
+    .from('teachers')
+    .select('id, profile_id')
+    .eq('profile_id', profileId)
+    .maybeSingle()
+}
+
+// POST /api/teacher/lessons
+// body: { subject_id, title, video_url, notes_url, duration }
+teacherRouter.post('/lessons', requireAuth, async (req, res) => {
+  const profileId = (req as any).auth.userId as string
+
+  const { subject_id, title, video_url, notes_url, duration } = req.body as {
+    subject_id?: string
+    title?: string
+    video_url?: string
+    notes_url?: string
+    duration?: number
+  }
+
+  if (!subject_id || !title) return res.status(400).json({ error: 'missing_subject_id_or_title' })
+
+  // Ensure teacher is assigned to this subject
+  const { data: teacherRow, error: teacherErr } = await supabaseAdmin
+    .from('teachers')
+    .select('id')
+    .eq('profile_id', profileId)
+    .maybeSingle()
+
+  if (teacherErr || !teacherRow) return res.status(403).json({ error: 'not_a_teacher' })
+
+  const { data: canTeach, error: canErr } = await supabaseAdmin
+    .from('teacher_subjects')
+    .select('teacher_id')
+    .eq('teacher_id', teacherRow.id)
+    .eq('subject_id', subject_id)
+    .maybeSingle()
+
+  if (canErr || !canTeach) return res.status(403).json({ error: 'forbidden_subject' })
+
+  const { data, error } = await supabaseAdmin
+    .from('lessons')
+    .insert({
+      subject_id,
+      title,
+      video_url: video_url || null,
+      notes_url: notes_url || null,
+      duration: duration ?? null,
+    })
+    .select('id, subject_id, title, video_url, notes_url, duration')
+    .single()
+
+  if (error) return res.status(400).json({ error: 'lesson_upload_failed', details: error.message })
+  return res.json({ lesson: data })
+})
+
+// POST /api/teacher/assignments
+// body: { lesson_id, title, due_date, instructions }
+teacherRouter.post('/assignments', requireAuth, async (req, res) => {
+  const profileId = (req as any).auth.userId as string
+  const { lesson_id, title, due_date, instructions } = req.body as {
+    lesson_id?: string
+    title?: string
+    due_date?: string
+    instructions?: string
+  }
+
+  if (!lesson_id || !title) return res.status(400).json({ error: 'missing_lesson_id_or_title' })
+
+  const { data: teacherRow, error: teacherErr } = await supabaseAdmin
+    .from('teachers')
+    .select('id')
+    .eq('profile_id', profileId)
+    .maybeSingle()
+
+  if (teacherErr || !teacherRow) return res.status(403).json({ error: 'not_a_teacher' })
+
+  // Ensure teacher can teach the lesson's subject
+  const { data: lessonRow, error: lessonErr } = await supabaseAdmin
+    .from('lessons')
+    .select('id, subject_id')
+    .eq('id', lesson_id)
+    .maybeSingle()
+
+  if (lessonErr || !lessonRow) return res.status(404).json({ error: 'lesson_not_found' })
+
+  const { data: canTeach, error: canErr } = await supabaseAdmin
+    .from('teacher_subjects')
+    .select('teacher_id')
+    .eq('teacher_id', teacherRow.id)
+    .eq('subject_id', lessonRow.subject_id)
+    .maybeSingle()
+
+  if (canErr || !canTeach) return res.status(403).json({ error: 'forbidden_subject' })
+
+  const { data, error } = await supabaseAdmin
+    .from('assignments')
+    .insert({
+      lesson_id,
+      title,
+      due_date: due_date ? new Date(due_date).toISOString() : null,
+      instructions: instructions || null,
+    })
+    .select('id, lesson_id, title, due_date, instructions')
+    .single()
+
+  if (error) return res.status(400).json({ error: 'assignment_create_failed', details: error.message })
+  return res.json({ assignment: data })
+})
+
+// PATCH /api/teacher/submissions/:studentId/:assignmentId
+// body: { grade, feedback }
+teacherRouter.patch('/submissions/:studentId/:assignmentId', requireAuth, async (req, res) => {
+  const profileId = (req as any).auth.userId as string
+  const { studentId, assignmentId } = req.params
+
+  const { grade, feedback } = req.body as { grade?: number | null; feedback?: string | null }
+  if (grade === undefined && feedback === undefined) return res.status(400).json({ error: 'missing_grade_or_feedback' })
+
+  // Ensure teacher is assigned to subject of this assignment's lesson
+  const { data: teacherRow, error: teacherErr } = await supabaseAdmin
+    .from('teachers')
+    .select('id')
+    .eq('profile_id', profileId)
+    .maybeSingle()
+
+  if (teacherErr || !teacherRow) return res.status(403).json({ error: 'not_a_teacher' })
+
+  const { data: assignmentRow, error: asgErr } = await supabaseAdmin
+    .from('assignments')
+    .select('id, lesson_id')
+    .eq('id', assignmentId)
+    .maybeSingle()
+
+  if (asgErr || !assignmentRow) return res.status(404).json({ error: 'assignment_not_found' })
+
+  const { data: lessonRow, error: lesErr } = await supabaseAdmin
+    .from('lessons')
+    .select('id, subject_id')
+    .eq('id', assignmentRow.lesson_id)
+    .maybeSingle()
+
+  if (lesErr || !lessonRow) return res.status(404).json({ error: 'lesson_not_found' })
+
+  const { data: canTeach, error: canErr } = await supabaseAdmin
+    .from('teacher_subjects')
+    .select('teacher_id')
+    .eq('teacher_id', teacherRow.id)
+    .eq('subject_id', lessonRow.subject_id)
+    .maybeSingle()
+
+  if (canErr || !canTeach) return res.status(403).json({ error: 'forbidden_subject' })
+
+  const { data, error } = await supabaseAdmin
+    .from('submissions')
+    .update({
+      grade: grade ?? null,
+      feedback: feedback ?? null,
+    })
+    .eq('student_id', studentId)
+    .eq('assignment_id', assignmentId)
+    .select('student_id,assignment_id,file_url,grade,feedback')
+    .maybeSingle()
+
+  if (error) return res.status(400).json({ error: 'submission_grade_failed', details: error.message })
+  return res.json({ submission: data })
+})
+

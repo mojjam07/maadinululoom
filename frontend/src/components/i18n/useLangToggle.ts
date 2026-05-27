@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useLanguage } from './LanguageProvider'
+import { useLanguage } from './useLanguage'
+
 
 export function useLangToggle() {
   const { lang, setLang } = useLanguage()
