@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
+import { requireActiveSubscription } from '../middleware/requireActiveSubscription'
 
 export const progressRouter = Router()
 
 // PATCH /api/progress/:lessonId
-progressRouter.patch('/:lessonId', requireAuth, async (req, res) => {
+progressRouter.patch('/:lessonId', requireAuth, requireActiveSubscription, async (req, res) => {
   const { lessonId } = req.params
   const studentId = (req as any).auth.userId as string
 

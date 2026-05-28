@@ -200,6 +200,208 @@ footer{background:#040f0a;color:rgba(255,255,255,0.65);padding:60px 5% 30px}
 .fade-up{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
 .fade-up.visible{opacity:1;transform:none}
 
+/* AUTH PAGES */
+.maadin-auth-bg{
+  min-height:100svh;
+  background:linear-gradient(135deg,#061f17 0%,var(--emerald) 50%,#0d4a36 100%);
+  padding:90px 5% 60px;
+  position:relative;
+  overflow:hidden;
+}
+.maadin-auth-bg::before{
+  content:'';
+  position:absolute;
+  inset:-40px;
+  background:radial-gradient(circle at 20% 10%, rgba(212,160,23,0.25), transparent 45%),
+             radial-gradient(circle at 80% 30%, rgba(255,255,255,0.12), transparent 40%);
+  opacity:0.6;
+  pointer-events:none;
+}
+
+.maadin-auth-wrap{
+  position:relative;
+  z-index:2;
+  max-width:920px;
+  margin:0 auto;
+}
+
+.maadin-auth-grid{
+  display:grid;
+  grid-template-columns:1.05fr 0.95fr;
+  gap:34px;
+  align-items:center;
+}
+
+.maadin-auth-side{
+  color:var(--white);
+  text-align:right;
+}
+
+.maadin-auth-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(212,160,23,0.15);
+  border:1px solid rgba(212,160,23,0.3);
+  color:var(--gold);
+  padding:6px 16px;
+  border-radius:50px;
+  font-size:12px;
+  font-family:'Cairo',sans-serif;
+  margin-bottom:16px;
+}
+
+.maadin-auth-title{
+  font-family:'Cairo',sans-serif;
+  font-size:clamp(26px,4vw,44px);
+  font-weight:900;
+  line-height:1.2;
+  margin:0 0 14px;
+  color:var(--white);
+}
+.maadin-auth-title span{color:var(--gold)}
+
+.maadin-auth-sub{
+  font-family:'Tajawal',sans-serif;
+  color:rgba(255,255,255,0.7);
+  font-size:15px;
+  line-height:1.7;
+  margin:0 0 22px;
+  max-width:520px;
+}
+
+.maadin-auth-card{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:26px;
+  backdrop-filter:blur(20px);
+}
+
+.maadin-auth-card h1{
+  font-family:'Cairo',sans-serif;
+  font-size:26px;
+  margin:0 0 14px;
+  font-weight:900;
+  color:var(--white);
+}
+
+.maadin-auth-form{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.maadin-auth-label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.maadin-auth-label span{
+  font-weight:700;
+  font-family:'Tajawal',sans-serif;
+  color:rgba(255,255,255,0.78);
+  font-size:13px;
+}
+
+.maadin-input{
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  padding:12px 16px;
+  color:var(--white);
+  font-family:'Tajawal',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+  direction:rtl;
+}
+
+.maadin-input:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(212,160,23,0.18)}
+.maadin-input::placeholder{color:rgba(255,255,255,0.35)}
+
+.maadin-auth-select{
+  appearance:none;
+  background:rgba(255,255,255,0.08);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  padding:12px 16px;
+  color:var(--white);
+  font-family:'Tajawal',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+  direction:rtl;
+}
+
+.maadin-auth-select:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(212,160,23,0.18)}
+
+.maadin-auth-error{
+  color:rgba(255,255,255,0.95);
+  background:rgba(220,20,60,0.12);
+  border:1px solid rgba(220,20,60,0.22);
+  padding:10px;
+  border-radius:12px;
+  font-family:'Tajawal',sans-serif;
+  font-size:13px;
+}
+
+.maadin-btn{
+  border:none;
+  border-radius:50px;
+  padding:14px 32px;
+  font-family:'Poppins',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  transition:all .25s;
+}
+
+.maadin-btn-primary{
+  background:var(--gold);
+  color:var(--emerald);
+}
+.maadin-btn-primary:hover:not(:disabled){
+  background:var(--gold-light);
+  transform:translateY(-2px);
+  box-shadow:0 10px 24px rgba(212,160,23,0.35);
+}
+
+.maadin-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
+
+.maadin-auth-linkrow{
+  margin-top:4px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.maadin-auth-link{
+  color:rgba(255,255,255,0.88);
+  text-decoration:none;
+  font-family:'Tajawal',sans-serif;
+  font-weight:700;
+  font-size:13px;
+}
+.maadin-auth-link:hover{color:var(--gold)}
+
+.maadin-auth-link-muted{
+  color:rgba(255,255,255,0.75);
+  text-decoration:none;
+  font-family:'Tajawal',sans-serif;
+  font-weight:700;
+  font-size:13px;
+}
+.maadin-auth-link-muted:hover{color:var(--gold)}
+
+@media(max-width:980px){
+  .maadin-auth-grid{grid-template-columns:1fr; gap:18px}
+  .maadin-auth-side{text-align:center}
+  .maadin-auth-card{padding:20px}
+}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .hero-content,.about-grid,.pricing-grid,.contact-grid,.footer-grid{grid-template-columns:1fr}

@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
+import { requireActiveSubscription } from '../middleware/requireActiveSubscription'
 
 export const submissionsRouter = Router()
 
 // POST /api/submissions
-submissionsRouter.post('/', requireAuth, async (req, res) => {
+submissionsRouter.post('/', requireAuth, requireActiveSubscription, async (req, res) => {
   const studentId = (req as any).auth.userId as string
 
   const { assignment_id, file_url } = req.body as { assignment_id?: string; file_url?: string }

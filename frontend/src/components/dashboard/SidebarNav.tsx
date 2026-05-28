@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 
-type Role = 'student' | 'teacher'
+type Role = 'student' | 'teacher' | 'admin'
 
 type NavKey =
   | 'dashboard'
@@ -9,6 +9,8 @@ type NavKey =
   | 'assignments'
   | 'attendance'
   | 'teacher'
+  | 'admin_dashboard'
+
 
 const NAV: Array<{ key: NavKey; label: string; path: string; roles: Role[] }> = [
   { key: 'dashboard', label: 'Dashboard', path: '/dashboard', roles: ['student'] },
@@ -17,6 +19,9 @@ const NAV: Array<{ key: NavKey; label: string; path: string; roles: Role[] }> = 
   { key: 'assignments', label: 'Assignments', path: '/dashboard', roles: ['student'] },
   { key: 'attendance', label: 'Attendance', path: '/dashboard', roles: ['student'] },
   { key: 'teacher', label: 'Teacher Portal', path: '/dashboard/teacher', roles: ['teacher'] },
+
+  // Admin
+  { key: 'admin_dashboard', label: 'Admin Portal', path: '/dashboard', roles: ['admin'] },
 ]
 
 export default function SidebarNav({ role, active }: { role: Role; active: NavKey }) {

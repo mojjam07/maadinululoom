@@ -9,9 +9,16 @@ alter table public.lesson_progress enable row level security;
 alter table public.assignments enable row level security;
 alter table public.submissions enable row level security;
 alter table public.attendance enable row level security;
+alter table public.classes enable row level security;
+alter table public.class_enrollments enable row level security;
+alter table public.notifications enable row level security;
+alter table public.subscriptions enable row level security;
+alter table public.payments enable row level security;
 
 
 -- Subjects are public read
+
+
 create policy "subjects_select_all" on public.subjects for select using (true);
 
 -- Profiles: user can read/update own row
@@ -35,6 +42,9 @@ create policy "teacher_subjects_select_own" on public.teacher_subjects for selec
 -- Lessons: public read (for simplicity)
 create policy "lessons_public_select" on public.lessons for select using (true);
 
+-- Attendance: student can select own (defined above originally)
+
+
 -- Lesson progress: student can select/insert/update own
 create policy "lesson_progress_student_select_own" on public.lesson_progress for select using (auth.uid() = student_id);
 create policy "lesson_progress_student_upsert_own" on public.lesson_progress for all using (auth.uid() = student_id) with check (auth.uid() = student_id);
@@ -50,5 +60,55 @@ create policy "submissions_student_update_own" on public.submissions for update 
 -- Attendance: student can select own
 create policy "attendance_student_select_own" on public.attendance for select using (auth.uid() = student_id);
 
+-- Live classes
+-- Student can read classes they are enrolled in
+create policy "classes_student_select_enrolled" on public.classes
+for select using (
+  exists (
+    select 1 from public.class_enrollments ce
+    where ce.class_id = classes.id and ce.student_id = auth.uid()
+  )
+);
+
+-- Teacher can read their own classes
+create policy "classes_teacher_select_own" on public.classes
+for select using (
+  exists (
+    select 1 from public.teachers t
+    where t.id = classes.teacher_id and t.profile_id = auth.uid()
+  )
+);
+
+-- Student can enroll/select own class_enrollments
+create policy "class_enrollments_student_select_own" on public.class_enrollments
+for select using (auth.uid() = student_id);
+
+create policy "class_enrollments_student_insert_own" on public.class_enrollments
+for insert with check (auth.uid() = student_id);
+
+-- Notifications: user can manage own notifications
+create policy "notifications_user_select_own" on public.notifications
+for select using (auth.uid() = user_id);
+
+create policy "notifications_user_insert_own" on public.notifications
+for insert with check (auth.uid() = user_id);
+
+create policy "notifications_user_update_own" on public.notifications
+for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Subscriptions: student can read own subscriptions
+create policy "subscriptions_student_select_own" on public.subscriptions
+for select using (auth.uid() = student_id);
+
+-- Payments: student can read own payment history
+create policy "payments_student_select_own" on public.payments
+for select using (auth.uid() = student_id);
+
+-- Admin/Backend access is handled via service role; RLS blocks normal client writes.
+-- Admin grant/revoke and webhook updates will use supabase service role.
+
 -- Admin can bypass via separate policies - left for later refinement
+
+
+
 

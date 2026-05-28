@@ -9,8 +9,12 @@ import { assignmentsRouter } from './assignments'
 import { submissionsRouter } from './submissions'
 import { attendanceRouter } from './attendance'
 import { teacherRouter } from './teacher'
+import { notificationsRouter } from './notifications'
+import { adminRouter } from './admin'
+import { webhooksRouter } from './webhooks'
 
 export const apiRouter = Router()
+
 
 
 apiRouter.use('/auth', authRouter)
@@ -23,5 +27,17 @@ apiRouter.use('/assignments', assignmentsRouter)
 apiRouter.use('/submissions', submissionsRouter)
 apiRouter.use('/attendance', attendanceRouter)
 apiRouter.use('/teacher', teacherRouter)
+apiRouter.use('/notifications', notificationsRouter)
+apiRouter.use('/admin', adminRouter)
+apiRouter.use('/webhooks', webhooksRouter)
+
+
+
+
+
+
+
+
+
 
 

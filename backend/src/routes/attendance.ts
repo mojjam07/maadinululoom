@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
+import { requireActiveSubscription } from '../middleware/requireActiveSubscription'
 
 export const attendanceRouter = Router()
 
 // GET /api/attendance/:studentId
-attendanceRouter.get('/:studentId', requireAuth, async (req, res) => {
+attendanceRouter.get('/:studentId', requireAuth, requireActiveSubscription, async (req, res) => {
   const { studentId } = req.params
   const userId = (req as any).auth.userId as string
   if (studentId !== userId) return res.status(403).json({ error: 'forbidden' })

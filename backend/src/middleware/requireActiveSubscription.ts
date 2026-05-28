@@ -1,0 +1,67 @@
+import type express from 'express'
+import { supabaseAdmin } from '../supabaseAdmin'
+
+const GRACE_DAYS = 3
+
+function isInGrace(expiresAt: Date, now: Date) {
+  const graceEnd = new Date(expiresAt.getTime() + GRACE_DAYS * 24 * 60 * 60 * 1000)
+  return now.getTime() <= graceEnd.getTime()
+}
+
+export async function requireActiveSubscription(req: express.Request, res: express.Response, next: express.NextFunction) {
+  try {
+    const userId = (req as any).auth?.userId as string | undefined
+    if (!userId) return res.status(401).json({ error: 'missing_user' })
+
+    const now = new Date()
+
+    // Latest subscription row for the student.
+    const { data: sub, error } = await supabaseAdmin
+      .from('subscriptions')
+      .select('plan,status,expires_at,payment_ref')
+      .eq('student_id', userId)
+      .order('expires_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) return res.status(500).json({ error: 'subscription_lookup_failed', details: error.message })
+
+    if (!sub) {
+      return res.status(402).json({ error: 'no_active_subscription' })
+    }
+
+    const expiresAt = sub.expires_at ? new Date(sub.expires_at) : null
+    const status = sub.status
+
+    const isActive =
+      status === 'active' &&
+      expiresAt !== null &&
+      expiresAt.getTime() >= now.getTime()
+
+    if (isActive) return next()
+
+    const isGrace =
+      status === 'active' &&
+      expiresAt !== null &&
+      isInGrace(expiresAt, now)
+
+    if (isGrace) {
+      ;(req as any).subscriptionGrace = true
+      return next()
+    }
+
+    const graceEndsAt = expiresAt
+      ? new Date(expiresAt.getTime() + GRACE_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      : null
+
+    return res.status(402).json({
+      error: 'subscription_expired',
+      expiresAt: sub.expires_at,
+      graceEndsAt,
+      plan: sub.plan,
+    })
+  } catch (e) {
+    return res.status(500).json({ error: 'require_active_subscription_failed', details: (e as Error).message })
+  }
+}
+

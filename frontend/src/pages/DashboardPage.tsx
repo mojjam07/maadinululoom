@@ -9,10 +9,15 @@ import AssignmentsPanel from '../components/dashboard/AssignmentsPanel'
 import RecentLessons from '../components/dashboard/RecentLessons'
 import UpcomingClasses from '../components/dashboard/UpcomingClasses'
 import TeacherPortalPage from '../components/dashboard/TeacherPortalPage'
+import NotificationBell from '../components/dashboard/NotificationBell'
+import AdminPortalPage from '../components/dashboard/AdminPortalPage'
+import '../styles/notifications.css'
 
 export default function DashboardPage() {
+  const [role, setRole] = useState<'student' | 'teacher' | 'admin' | null>(null)
 
-  const [role, setRole] = useState<'student' | 'teacher' | null>(null)
+
+
 
   useEffect(() => {
     let mounted = true
@@ -20,7 +25,11 @@ export default function DashboardPage() {
       const { data } = await supabase.auth.getSession()
       const userId = data.session?.user?.id
       const accessToken = data.session?.access_token
-      if (!userId || !accessToken) return
+
+      if (!userId || !accessToken) {
+        // session missing, let AuthGate handle redirect. Keep role unset.
+        return
+      }
 
       const res = await fetch(
         `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/profile/${userId}`,
@@ -39,7 +48,13 @@ export default function DashboardPage() {
           ? (json as { profile?: { role?: string } }).profile?.role
           : undefined
 
-      const nextRole = dbRole === 'teacher' ? 'teacher' : 'student'
+      const nextRole =
+        dbRole === 'admin'
+          ? 'admin'
+          : dbRole === 'teacher'
+            ? 'teacher'
+            : 'student'
+
       if (mounted) setRole(nextRole)
     }
     loadRole()
@@ -48,28 +63,50 @@ export default function DashboardPage() {
     }
   }, [])
 
+
   if (!role) {
     return <div style={{ padding: 24 }}>Loading...</div>
+  }
+
+  if (role === 'admin') {
+    return (
+      <div className="maadin-dashboard-shell">
+        <SidebarNav role="admin" active="admin_dashboard" />
+        <main className="maadin-dashboard-main">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <NotificationBell />
+          </div>
+          <AdminPortalPage />
+        </main>
+      </div>
+    )
   }
 
   if (role === 'teacher') {
     return (
       <div className="maadin-dashboard-shell">
-
         <SidebarNav role="teacher" active="teacher" />
         <main className="maadin-dashboard-main">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <NotificationBell />
+          </div>
           <TeacherPortalPage />
         </main>
       </div>
     )
   }
 
-
   return (
     <div className="maadin-dashboard-shell">
       <SidebarNav role="student" active="dashboard" />
       <main className="maadin-dashboard-main">
-        <h1 className="maadin-dashboard-title">Dashboard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <h1 className="maadin-dashboard-title" style={{ margin: 0 }}>
+            Dashboard
+          </h1>
+          <NotificationBell />
+        </div>
+
         <StatsCards />
         <div className="maadin-dashboard-grid">
           <div>
@@ -86,4 +123,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
 

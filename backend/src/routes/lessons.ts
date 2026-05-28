@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
+import { requireActiveSubscription } from '../middleware/requireActiveSubscription'
+
 
 export const lessonsRouter = Router()
 
 // GET /api/lessons/:subjectId
-lessonsRouter.get('/:subjectId', requireAuth, async (req, res) => {
+lessonsRouter.get('/:subjectId', requireAuth, requireActiveSubscription, async (req, res) => {
   const { subjectId } = req.params
 
   const { data, error } = await supabaseAdmin

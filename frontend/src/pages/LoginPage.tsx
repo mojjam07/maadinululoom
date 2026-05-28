@@ -1,0 +1,149 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabaseClient'
+
+export default function LoginPage() {
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
+
+  useEffect(() => {
+    // If already logged in, go to correct dashboard.
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      const session = data.session
+      if (!session) return
+
+      const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const json = (await res.json().catch(() => ({}))) as
+        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
+        | Record<string, unknown>
+
+      const role =
+        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
+          ? ((json as { profile?: { role?: string } }).profile?.role as
+              | 'student'
+              | 'teacher'
+              | 'admin'
+              | undefined)
+          : undefined
+
+      if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
+      else navigate('/dashboard', { replace: true })
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (signInErr) throw signInErr
+
+      // After sign-in, fetch role to redirect.
+      const { data } = await supabase.auth.getSession()
+      const session = data.session
+      if (!session) throw new Error('missing_session')
+
+      const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      const json = (await res.json().catch(() => ({}))) as
+        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
+        | Record<string, unknown>
+
+      const role =
+        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
+          ? ((json as { profile?: { role?: string } }).profile?.role as
+              | 'student'
+              | 'teacher'
+              | 'admin'
+              | undefined)
+          : undefined
+
+      if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
+      else navigate('/dashboard', { replace: true })
+    } catch (e2) {
+      const msg = e2 instanceof Error ? e2.message : 'login_failed'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="maadin-auth-bg">
+      <div className="maadin-auth-wrap">
+        <div className="maadin-auth-grid">
+          <div className="maadin-auth-side">
+            <div className="maadin-auth-badge">✨ Welcome to معدن العلوم</div>
+            <h2 className="maadin-auth-title" style={{ marginBottom: 10 }}>
+              Learn with <span>Islamic</span> & Arabic focus
+            </h2>
+            <p className="maadin-auth-sub">
+              Sign in to continue your journey—classes, progress, and teacher support in one place.
+            </p>
+          </div>
+
+          <div className="maadin-auth-card">
+            <h1>Login</h1>
+
+            <form onSubmit={onSubmit} className="maadin-auth-form">
+              <label className="maadin-auth-label">
+                <span>Email</span>
+                <input
+                  className="maadin-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  required
+                  placeholder="your@email.com"
+                />
+              </label>
+
+              <label className="maadin-auth-label">
+                <span>Password</span>
+                <input
+                  className="maadin-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                />
+              </label>
+
+              {error && <div className="maadin-auth-error">{error}</div>}
+
+              <button className="maadin-btn maadin-btn-primary" type="submit" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign in'}
+              </button>
+
+              <div className="maadin-auth-linkrow">
+                <a className="maadin-auth-link" href="/register">
+                  Create account
+                </a>
+                <a className="maadin-auth-link-muted" href="/">
+                  Back to home
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
