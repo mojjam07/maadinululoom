@@ -19,25 +19,36 @@ alter table public.payments enable row level security;
 -- Subjects are public read
 
 
+drop policy if exists "subjects_select_all" on public.subjects;
 create policy "subjects_select_all" on public.subjects for select using (true);
 
 -- Profiles: user can read/update own row
+drop policy if exists "profiles_self_select" on public.profiles;
+drop policy if exists "profiles_self_select" on public.profiles;
 create policy "profiles_self_select" on public.profiles for select using (auth.uid() = id);
+
+drop policy if exists "profiles_self_update" on public.profiles;
 create policy "profiles_self_update" on public.profiles for update using (auth.uid() = id);
 
 -- Enrollments: student can insert for self and select own
+drop policy if exists "enrollments_student_select_own" on public.enrollments;
 create policy "enrollments_student_select_own" on public.enrollments for select using (auth.uid() = student_id);
+
+drop policy if exists "enrollments_student_insert_own" on public.enrollments;
 create policy "enrollments_student_insert_own" on public.enrollments for insert with check (auth.uid() = student_id);
 
 -- Teachers: teacher can read own teacher row
+drop policy if exists "teachers_self_select" on public.teachers;
 create policy "teachers_self_select" on public.teachers for select using (exists (
   select 1 from public.profiles p where p.id = teachers.profile_id and p.id = auth.uid()
 ));
 
 -- Teacher subjects: teacher can read own assignments
+drop policy if exists "teacher_subjects_select_own" on public.teacher_subjects;
 create policy "teacher_subjects_select_own" on public.teacher_subjects for select using (exists (
   select 1 from public.teachers t where t.id = teacher_subjects.teacher_id and t.profile_id = auth.uid()
 ));
+
 
 -- Lessons: public read (for simplicity)
 create policy "lessons_public_select" on public.lessons for select using (true);

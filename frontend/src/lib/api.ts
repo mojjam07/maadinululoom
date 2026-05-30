@@ -66,7 +66,40 @@ export async function getLessonsBySubject(subjectId: string): Promise<{
   return apiFetch(`/api/lessons/${encodeURIComponent(subjectId)}`)
 }
 
-export async function patchLessonProgress(lessonId: string, completed: boolean): Promise<{
+export type CertificateItem = {
+  id?: string
+  cert_id: string
+  issued_at: string
+  status: string
+  snapshot?: Record<string, unknown> | null
+  exam_score?: Record<string, unknown> | null
+  pdf_storage_path?: string | null
+  pdf_url?: string | null
+  student_name?: string | null
+  subject_id?: string | null
+  subject_name?: string | { name_ar: string; name_en: string } | null
+  exam_score_raw?: unknown
+}
+
+export async function getMyCertificates(): Promise<{ certificates: CertificateItem[] }> {
+  return apiFetch('/api/certificates/me')
+}
+
+export async function verifyCertificate(certId: string): Promise<{
+  valid: boolean
+  cert_id: string
+  issued_at: string
+  status: string
+  student_name: string | null
+  subject_name: { name_ar: string; name_en: string } | null
+  exam_score: unknown
+  pdf_url: string | null
+}> {
+  return apiFetch(`/api/certificates/verify/${encodeURIComponent(certId)}`)
+}
+
+export async function patchLessonProgress(lessonId: string, completed: boolean): Promise<{ 
+
   progress: { student_id: string; lesson_id: string; completed: boolean; watched_at: string | null }
 }> {
   return apiFetch(`/api/progress/${encodeURIComponent(lessonId)}`, {
@@ -74,5 +107,8 @@ export async function patchLessonProgress(lessonId: string, completed: boolean):
     body: JSON.stringify({ completed }),
   })
 }
+
+
+
 
 

@@ -11,6 +11,7 @@ import UpcomingClasses from '../components/dashboard/UpcomingClasses'
 import TeacherPortalPage from '../components/dashboard/TeacherPortalPage'
 import NotificationBell from '../components/dashboard/NotificationBell'
 import AdminPortalPage from '../components/dashboard/AdminPortalPage'
+import CertificatesPanel from '../components/dashboard/CertificatesPanel'
 import '../styles/notifications.css'
 
 export default function DashboardPage() {
@@ -117,6 +118,7 @@ export default function DashboardPage() {
             <AssignmentsPanel />
             <UpcomingClasses />
             <RecentLessons />
+            <CertificatesPanel />
           </div>
         </div>
       </main>
