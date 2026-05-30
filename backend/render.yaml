@@ -1,0 +1,19 @@
+# Render configuration for the backend
+# Place this file inside the backend folder.
+
+services:
+  - type: web
+    name: maadin-backend
+    env: node
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+    # Render will override PORT automatically in many setups, but we set a fallback.
+
