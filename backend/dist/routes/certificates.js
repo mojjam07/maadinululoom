@@ -1,7 +1,10 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../supabaseAdmin';
-import { requireAuth } from '../middleware/requireAuth';
-export const certificatesRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.certificatesRouter = void 0;
+const express_1 = require("express");
+const supabaseAdmin_1 = require("../supabaseAdmin");
+const requireAuth_1 = require("../middleware/requireAuth");
+exports.certificatesRouter = (0, express_1.Router)();
 // Storage bucket convention:
 //   certificates/<student-uuid>/<cert_id>.pdf
 // We use signed URLs so the storage objects can remain private.
@@ -9,7 +12,7 @@ export const certificatesRouter = Router();
 // body: { cert_id, student_id, subject_id, snapshot?, exam_score?, issued_at? }
 // NOTE: PDF generation + upload via Puppeteer is implemented later in Phase 6.
 // This endpoint currently issues DB row only (stub) to unblock UI/API flow.
-certificatesRouter.post('/issue', requireAuth, async (req, res) => {
+exports.certificatesRouter.post('/issue', requireAuth_1.requireAuth, async (req, res) => {
     // In Phase 6 we can allow teacher/admin. For now: allow any authenticated user.
     // Later: enforce teacher/admin via profiles.role.
     const _actorId = req.auth.userId;
@@ -19,7 +22,7 @@ certificatesRouter.post('/issue', requireAuth, async (req, res) => {
     }
     // Derive storage path (PDF file may be created in a later step)
     const pdfStoragePath = `certificates/${student_id}/${cert_id}.pdf`;
-    const { data, error } = await supabaseAdmin.from('certificates').upsert({
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin.from('certificates').upsert({
         cert_id,
         student_id,
         subject_id,
@@ -34,9 +37,9 @@ certificatesRouter.post('/issue', requireAuth, async (req, res) => {
     return res.json({ certificate: data?.[0] });
 });
 // GET /api/certificates/me
-certificatesRouter.get('/me', requireAuth, async (req, res) => {
+exports.certificatesRouter.get('/me', requireAuth_1.requireAuth, async (req, res) => {
     const studentId = req.auth.userId;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('certificates')
         .select('id, cert_id, issued_at, status, snapshot, exam_score, pdf_storage_path')
         .eq('student_id', studentId)
@@ -49,7 +52,7 @@ certificatesRouter.get('/me', requireAuth, async (req, res) => {
         // path convention: certificates/<student>/<file>.pdf
         const filePath = path.replace(/^certificates\//, '');
         const bucket = 'certificates';
-        const signedUrl = await supabaseAdmin
+        const signedUrl = await supabaseAdmin_1.supabaseAdmin
             .storage
             .from(bucket)
             .createSignedUrl(filePath, 60 * 60)
@@ -64,9 +67,9 @@ certificatesRouter.get('/me', requireAuth, async (req, res) => {
 });
 // GET /api/certificates/verify/:certId
 // Public verify endpoint used by /verify/:certId page.
-certificatesRouter.get('/verify/:certId', async (req, res) => {
+exports.certificatesRouter.get('/verify/:certId', async (req, res) => {
     const { certId } = req.params;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('certificates')
         .select('cert_id, issued_at, status, snapshot, exam_score, student_id, subject_id')
         .eq('cert_id', certId)
@@ -75,18 +78,18 @@ certificatesRouter.get('/verify/:certId', async (req, res) => {
         return res.status(400).json({ error: 'certificate_verify_failed', details: error.message });
     if (!data)
         return res.status(404).json({ valid: false });
-    const { data: subject } = await supabaseAdmin
+    const { data: subject } = await supabaseAdmin_1.supabaseAdmin
         .from('subjects')
         .select('name_ar, name_en')
         .eq('id', data.subject_id)
         .maybeSingle();
-    const { data: student } = await supabaseAdmin
+    const { data: student } = await supabaseAdmin_1.supabaseAdmin
         .from('profiles')
         .select('name')
         .eq('id', data.student_id)
         .maybeSingle();
     const filePath = `certificates/${data.student_id}/${data.cert_id}.pdf`.replace(/^certificates\//, '');
-    const signedUrl = await supabaseAdmin
+    const signedUrl = await supabaseAdmin_1.supabaseAdmin
         .storage
         .from('certificates')
         .createSignedUrl(filePath, 60 * 60)

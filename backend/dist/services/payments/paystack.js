@@ -1,4 +1,7 @@
-import { supabaseAdmin } from '../../supabaseAdmin';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handlePaystackWebhook = handlePaystackWebhook;
+const supabaseAdmin_1 = require("../../supabaseAdmin");
 // NOTE: This is Phase-5 scaffolding.
 // It will compile, and webhook will persist payment/subscription updates.
 // Signature verification and provider-specific fields need to be wired with real Paystack secrets.
@@ -8,7 +11,7 @@ function getText(val) {
 function getNumber(val) {
     return typeof val === 'number' ? val : null;
 }
-export async function handlePaystackWebhook(req, _res) {
+async function handlePaystackWebhook(req, _res) {
     // Paystack typical body: { event, data: { ... } }
     const body = req.body;
     const eventType = getText(body?.event);
@@ -41,7 +44,7 @@ async function upsertPaymentAndSubscription(args) {
     const expiresAt = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
     // Idempotency: upsert payment by payment_ref via subscriptions.payment_ref.
     // payments has id, so we also store provider+payment_ref.
-    const { data: existingPayment } = await supabaseAdmin
+    const { data: existingPayment } = await supabaseAdmin_1.supabaseAdmin
         .from('payments')
         .select('id')
         .eq('provider', provider)
@@ -49,7 +52,7 @@ async function upsertPaymentAndSubscription(args) {
         .maybeSingle();
     const paymentStatus = succeeded ? 'succeeded' : 'failed';
     if (!existingPayment) {
-        await supabaseAdmin.from('payments').insert({
+        await supabaseAdmin_1.supabaseAdmin.from('payments').insert({
             student_id: studentId,
             amount: amount ?? null,
             currency,
@@ -64,7 +67,7 @@ async function upsertPaymentAndSubscription(args) {
     }
     // Upsert subscription: always create/update on webhook.
     const subStatus = succeeded ? 'active' : 'past_due';
-    const { error: upErr } = await supabaseAdmin
+    const { error: upErr } = await supabaseAdmin_1.supabaseAdmin
         .from('subscriptions')
         .upsert({
         student_id: studentId,

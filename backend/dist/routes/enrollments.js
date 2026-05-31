@@ -1,8 +1,11 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../supabaseAdmin';
-import { requireAuth } from '../middleware/requireAuth';
-export const enrollmentsRouter = Router();
-enrollmentsRouter.post('/', requireAuth, async (req, res) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.enrollmentsRouter = void 0;
+const express_1 = require("express");
+const supabaseAdmin_1 = require("../supabaseAdmin");
+const requireAuth_1 = require("../middleware/requireAuth");
+exports.enrollmentsRouter = (0, express_1.Router)();
+exports.enrollmentsRouter.post('/', requireAuth_1.requireAuth, async (req, res) => {
     const userId = req.auth.userId;
     const { student_id, subject_id, status } = req.body;
     if (!subject_id)
@@ -10,7 +13,7 @@ enrollmentsRouter.post('/', requireAuth, async (req, res) => {
     const finalStudentId = student_id || userId;
     if (finalStudentId !== userId)
         return res.status(403).json({ error: 'forbidden' });
-    const { data, error } = await supabaseAdmin.from('enrollments').insert({
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin.from('enrollments').insert({
         student_id: finalStudentId,
         subject_id,
         status: status || 'active',

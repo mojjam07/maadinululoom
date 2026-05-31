@@ -1,4 +1,7 @@
-import { config } from '../config';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createMeeting = createMeeting;
+const config_1 = require("../config");
 function getEnv(name) {
     const v = process.env[name];
     if (!v)
@@ -12,7 +15,7 @@ function getEnv(name) {
  * To keep the backend progressing, we expose a clean interface and fail
  * with a clear error if required env vars are absent.
  */
-export async function createMeeting(input) {
+async function createMeeting(input) {
     // Required env vars for a real implementation (server-to-server OAuth / JWT).
     // We validate them early so misconfiguration is obvious.
     //
@@ -30,7 +33,7 @@ export async function createMeeting(input) {
     const fakeMeetingId = `pending_${Buffer.from(input.topic).toString('base64').slice(0, 10)}`;
     const joinUrl = `https://zoom.us/j/${encodeURIComponent(fakeMeetingId)}`;
     // Prevent unused lint warnings
-    void config;
+    void config_1.config;
     return {
         zoom_meeting_id: fakeMeetingId,
         zoom_join_url: joinUrl,

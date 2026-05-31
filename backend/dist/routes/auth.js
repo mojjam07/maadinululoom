@@ -1,13 +1,16 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../supabaseAdmin';
-export const authRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authRouter = void 0;
+const express_1 = require("express");
+const supabaseAdmin_1 = require("../supabaseAdmin");
+exports.authRouter = (0, express_1.Router)();
 // Email/password sign-up
-authRouter.post('/register', async (req, res) => {
+exports.authRouter.post('/register', async (req, res) => {
     const { email, password, role, name } = req.body;
     if (!email || !password)
         return res.status(400).json({ error: 'missing_email_or_password' });
     const signUpRole = role || 'student';
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
@@ -17,7 +20,7 @@ authRouter.post('/register', async (req, res) => {
         return res.status(400).json({ error: 'register_failed', details: error.message });
     // Create profile row
     const userId = data.user.id;
-    const { error: upErr } = await supabaseAdmin.from('profiles').insert({
+    const { error: upErr } = await supabaseAdmin_1.supabaseAdmin.from('profiles').insert({
         id: userId,
         name: name || null,
         role: signUpRole,
@@ -30,7 +33,7 @@ authRouter.post('/register', async (req, res) => {
     // For refresh-token handling in frontend, we will require explicit login to get session.
     return res.json({ ok: true, userId });
 });
-authRouter.post('/login', async (req, res) => {
+exports.authRouter.post('/login', async (req, res) => {
     // Backend login with service role cannot issue refresh tokens directly.
     // We'll return a message instructing frontend to use supabase-js on client.
     // Phase 2 expects API endpoints though; implement via admin.createUser? Not possible.

@@ -1,10 +1,13 @@
-import { supabaseAdmin } from '../../supabaseAdmin';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleStripeWebhook = handleStripeWebhook;
+const supabaseAdmin_1 = require("../../supabaseAdmin");
 // NOTE: Phase-5 scaffolding.
 // Wire real Stripe signature verification with STRIPE_WEBHOOK_SECRET.
 function getText(val) {
     return typeof val === 'string' ? val : null;
 }
-export async function handleStripeWebhook(req, _res) {
+async function handleStripeWebhook(req, _res) {
     const body = req.body;
     // Typical Stripe webhook payload includes: type, data.object
     const eventType = getText(body?.type);
@@ -37,14 +40,14 @@ async function upsertPaymentAndSubscription(args) {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
     const paymentStatus = succeeded ? 'succeeded' : 'failed';
-    const { data: existingPayment } = await supabaseAdmin
+    const { data: existingPayment } = await supabaseAdmin_1.supabaseAdmin
         .from('payments')
         .select('id')
         .eq('provider', provider)
         .eq('payment_ref', providerRef)
         .maybeSingle();
     if (!existingPayment) {
-        await supabaseAdmin.from('payments').insert({
+        await supabaseAdmin_1.supabaseAdmin.from('payments').insert({
             student_id: studentId,
             amount: amount ?? null,
             currency,
@@ -58,7 +61,7 @@ async function upsertPaymentAndSubscription(args) {
         });
     }
     const subStatus = succeeded ? 'active' : 'past_due';
-    const { error: upErr } = await supabaseAdmin
+    const { error: upErr } = await supabaseAdmin_1.supabaseAdmin
         .from('subscriptions')
         .upsert({
         student_id: studentId,

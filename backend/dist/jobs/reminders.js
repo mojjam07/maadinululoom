@@ -1,5 +1,8 @@
-import { supabaseAdmin } from '../supabaseAdmin';
-import { sendClassReminderBestEffort } from '../services/reminderDispatch.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.runClassRemindersOnce = runClassRemindersOnce;
+const supabaseAdmin_1 = require("../supabaseAdmin");
+const reminderDispatch_js_1 = require("../services/reminderDispatch.js");
 function getOffsetKey(offsetMins) {
     return `T-${offsetMins}m`;
 }
@@ -22,7 +25,7 @@ async function notificationExists(args) {
     // notifications schema currently has no metadata column.
     // We'll dedupe using the message prefix we generate.
     const offsetKey = getOffsetKey(offsetMins);
-    const { data } = await supabaseAdmin
+    const { data } = await supabaseAdmin_1.supabaseAdmin
         .from('notifications')
         .select('id')
         .eq('user_id', userId)
@@ -36,7 +39,7 @@ async function createNotification(args) {
     const { title, body } = buildMessage({ topic, startTimeISO, offsetMins });
     // Encode classId + offset inside message for best-effort dedupe
     const message = `class_id:${classId} offset:${getOffsetKey(offsetMins)} ${body}`;
-    const { error } = await supabaseAdmin.from('notifications').insert({
+    const { error } = await supabaseAdmin_1.supabaseAdmin.from('notifications').insert({
         user_id: userId,
         type: 'class_reminder',
         message,
@@ -46,14 +49,14 @@ async function createNotification(args) {
         console.error('createNotification failed', error);
     }
 }
-export async function runClassRemindersOnce() {
+async function runClassRemindersOnce() {
     const now = new Date();
     const offsets = [60, 10];
     // Window: next 90 minutes to capture 60 and 10 minute offsets reliably.
     const windowStart = new Date(now.getTime() - 10 * 60 * 1000).toISOString();
     const windowEnd = new Date(now.getTime() + 90 * 60 * 1000).toISOString();
     // Fetch classes in window
-    const { data: classes, error: classErr } = await supabaseAdmin
+    const { data: classes, error: classErr } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .select('id, topic, start_time, teacher_id')
         .gte('start_time', windowStart)
@@ -76,7 +79,7 @@ export async function runClassRemindersOnce() {
             if (diffMs > 2 * 60 * 1000)
                 continue;
             // students enrolled in class
-            const { data: enrollments, error: enrErr } = await supabaseAdmin
+            const { data: enrollments, error: enrErr } = await supabaseAdmin_1.supabaseAdmin
                 .from('class_enrollments')
                 .select('student_id')
                 .eq('class_id', classId);
@@ -99,7 +102,7 @@ export async function runClassRemindersOnce() {
                 });
                 inserted += 1;
                 // Best-effort dispatch (push/email/whatsapp)
-                await sendClassReminderBestEffort({
+                await (0, reminderDispatch_js_1.sendClassReminderBestEffort)({
                     userId,
                     classId,
                     offsetMins,

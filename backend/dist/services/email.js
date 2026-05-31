@@ -1,4 +1,7 @@
-export async function sendEmailBestEffort(_args) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendEmailBestEffort = sendEmailBestEffort;
+async function sendEmailBestEffort(_args) {
     // SMTP/Twilio not wired in this repo yet.
     // Guard by env vars and do best-effort no-op.
     const smtpHost = process.env.SMTP_HOST;

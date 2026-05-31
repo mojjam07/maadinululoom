@@ -1,10 +1,13 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../supabaseAdmin';
-import { requireAuth } from '../middleware/requireAuth';
-import { createMeeting } from '../services/zoom';
-export const adminRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.adminRouter = void 0;
+const express_1 = require("express");
+const supabaseAdmin_1 = require("../supabaseAdmin");
+const requireAuth_1 = require("../middleware/requireAuth");
+const zoom_1 = require("../services/zoom");
+exports.adminRouter = (0, express_1.Router)();
 async function getRole(userId) {
-    const { data, error } = await supabaseAdmin.from('profiles').select('role').eq('id', userId).maybeSingle();
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin.from('profiles').select('role').eq('id', userId).maybeSingle();
     if (error)
         return null;
     return data?.role ?? null;
@@ -13,12 +16,12 @@ function requireAdmin(role) {
     return role === 'admin';
 }
 // GET /api/admin/classes
-adminRouter.get('/classes', requireAuth, async (req, res) => {
+exports.adminRouter.get('/classes', requireAuth_1.requireAuth, async (req, res) => {
     const actorId = req.auth.userId;
     const role = await getRole(actorId);
     if (!requireAdmin(role))
         return res.status(403).json({ error: 'forbidden' });
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .select('id, topic, start_time, duration_mins, zoom_link, recording_url, canceled_at, teacher_profile_id')
         .order('start_time', { ascending: false });
@@ -27,7 +30,7 @@ adminRouter.get('/classes', requireAuth, async (req, res) => {
     return res.json({ classes: data || [] });
 });
 // POST /api/admin/classes
-adminRouter.post('/classes', requireAuth, async (req, res) => {
+exports.adminRouter.post('/classes', requireAuth_1.requireAuth, async (req, res) => {
     const actorId = req.auth.userId;
     const role = await getRole(actorId);
     if (!requireAdmin(role))
@@ -37,7 +40,7 @@ adminRouter.post('/classes', requireAuth, async (req, res) => {
         return res.status(400).json({ error: 'missing_topic_start_time_or_duration' });
     let zoom;
     try {
-        zoom = await createMeeting({
+        zoom = await (0, zoom_1.createMeeting)({
             topic,
             startTime: new Date(start_time).toISOString(),
             durationMins: duration_mins,
@@ -47,7 +50,7 @@ adminRouter.post('/classes', requireAuth, async (req, res) => {
     catch (e) {
         return res.status(500).json({ error: 'zoom_create_failed', details: e.message });
     }
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .insert({
         topic,
@@ -66,7 +69,7 @@ adminRouter.post('/classes', requireAuth, async (req, res) => {
     return res.json({ class: data });
 });
 // PATCH /api/admin/classes/:classId
-adminRouter.patch('/classes/:classId', requireAuth, async (req, res) => {
+exports.adminRouter.patch('/classes/:classId', requireAuth_1.requireAuth, async (req, res) => {
     const actorId = req.auth.userId;
     const role = await getRole(actorId);
     if (!requireAdmin(role))
@@ -80,7 +83,7 @@ adminRouter.patch('/classes/:classId', requireAuth, async (req, res) => {
         patch.duration_mins = duration_mins;
     if (canceled_at !== undefined)
         patch.canceled_at = canceled_at ? new Date(canceled_at).toISOString() : null;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .update(patch)
         .eq('id', classId)

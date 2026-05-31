@@ -1,13 +1,16 @@
-import { supabaseAdmin } from '../supabaseAdmin';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.requireAuth = requireAuth;
+const supabaseAdmin_1 = require("../supabaseAdmin");
 // Verifies Supabase Auth access token by asking Supabase admin for the user.
 // This avoids needing local JWT verification dependencies.
-export async function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
     try {
         const auth = req.headers.authorization;
         if (!auth || !auth.startsWith('Bearer '))
             return res.status(401).json({ error: 'missing_bearer' });
         const token = auth.slice('Bearer '.length);
-        const { data, error } = await supabaseAdmin.auth.getUser(token);
+        const { data, error } = await supabaseAdmin_1.supabaseAdmin.auth.getUser(token);
         if (error || !data?.user)
             return res.status(401).json({ error: 'invalid_token' });
         req.auth = { userId: data.user.id };

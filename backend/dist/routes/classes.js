@@ -1,10 +1,13 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../supabaseAdmin';
-import { requireAuth } from '../middleware/requireAuth';
-import { createMeeting } from '../services/zoom';
-export const classesRouter = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.classesRouter = void 0;
+const express_1 = require("express");
+const supabaseAdmin_1 = require("../supabaseAdmin");
+const requireAuth_1 = require("../middleware/requireAuth");
+const zoom_1 = require("../services/zoom");
+exports.classesRouter = (0, express_1.Router)();
 async function getRole(userId) {
-    const { data, error } = await supabaseAdmin.from('profiles').select('role').eq('id', userId).maybeSingle();
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin.from('profiles').select('role').eq('id', userId).maybeSingle();
     if (error)
         return null;
     return data?.role ?? null;
@@ -13,10 +16,10 @@ function requireAdminOrTeacher(role) {
     return role === 'admin' || role === 'teacher';
 }
 // Student: list classes the student is enrolled in
-classesRouter.get('/', requireAuth, async (req, res) => {
+exports.classesRouter.get('/', requireAuth_1.requireAuth, async (req, res) => {
     const studentId = req.auth.userId;
     // First fetch class ids the student is enrolled in.
-    const { data: enrollments, error: enrErr } = await supabaseAdmin
+    const { data: enrollments, error: enrErr } = await supabaseAdmin_1.supabaseAdmin
         .from('class_enrollments')
         .select('class_id')
         .eq('student_id', studentId);
@@ -25,7 +28,7 @@ classesRouter.get('/', requireAuth, async (req, res) => {
     const classIds = (enrollments || []).map((e) => e.class_id);
     if (classIds.length === 0)
         return res.json({ classes: [] });
-    const { data: classes, error: clsErr } = await supabaseAdmin
+    const { data: classes, error: clsErr } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .select('id, topic, start_time, duration_mins, zoom_link, recording_url, canceled_at')
         .in('id', classIds);
@@ -34,7 +37,7 @@ classesRouter.get('/', requireAuth, async (req, res) => {
     return res.json({ classes: classes || [] });
 });
 // Admin/Teacher: create class + create zoom meeting
-classesRouter.post('/', requireAuth, async (req, res) => {
+exports.classesRouter.post('/', requireAuth_1.requireAuth, async (req, res) => {
     const teacherOrAdminId = req.auth.userId;
     const role = await getRole(teacherOrAdminId);
     if (!requireAdminOrTeacher(role))
@@ -45,7 +48,7 @@ classesRouter.post('/', requireAuth, async (req, res) => {
     // Create Zoom meeting
     let zoom;
     try {
-        zoom = await createMeeting({
+        zoom = await (0, zoom_1.createMeeting)({
             topic,
             startTime: new Date(start_time).toISOString(),
             durationMins: duration_mins,
@@ -55,7 +58,7 @@ classesRouter.post('/', requireAuth, async (req, res) => {
     catch (e) {
         return res.status(500).json({ error: 'zoom_create_failed', details: e.message });
     }
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .insert({
         topic,
@@ -74,7 +77,7 @@ classesRouter.post('/', requireAuth, async (req, res) => {
     return res.json({ class: data });
 });
 // Admin/Teacher: cancel/reschedule class
-classesRouter.patch('/:classId', requireAuth, async (req, res) => {
+exports.classesRouter.patch('/:classId', requireAuth_1.requireAuth, async (req, res) => {
     const actorId = req.auth.userId;
     const role = await getRole(actorId);
     if (!requireAdminOrTeacher(role))
@@ -88,7 +91,7 @@ classesRouter.patch('/:classId', requireAuth, async (req, res) => {
         patch.duration_mins = duration_mins;
     if (canceled_at !== undefined)
         patch.canceled_at = canceled_at ? new Date(canceled_at).toISOString() : null;
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
         .from('classes')
         .update(patch)
         .eq('id', classId)

@@ -1,5 +1,8 @@
-import { supabaseAdmin } from '../supabaseAdmin';
-export async function sendWebPushBestEffort(_args) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendWebPushBestEffort = sendWebPushBestEffort;
+const supabaseAdmin_1 = require("../supabaseAdmin");
+async function sendWebPushBestEffort(_args) {
     // No push_subscriptions table is present in current schema.
     // We'll guard by env vars and log, but do nothing if not configured.
     const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
@@ -12,5 +15,5 @@ export async function sendWebPushBestEffort(_args) {
     // eslint-disable-next-line no-console
     console.log('web-push configured, but push sending is not implemented yet (no subscription storage).');
     // Optionally could look up subscriptions here when schema is added.
-    await supabaseAdmin.from('notifications').select('id').limit(0);
+    await supabaseAdmin_1.supabaseAdmin.from('notifications').select('id').limit(0);
 }
