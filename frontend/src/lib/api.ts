@@ -1,6 +1,9 @@
 import { supabase } from './supabaseClient'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+
+// In production we expect to load the API from the same origin (no base URL).
+// In development, set VITE_API_BASE_URL=http://localhost:3000 (or your dev API URL).
 
 export async function getAuthToken(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()

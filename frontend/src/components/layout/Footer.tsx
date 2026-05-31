@@ -12,9 +12,9 @@ export default function Footer() {
               </span>
             </div>
           </div>
-          <p className="footer-tagline">علمم الانسان مالهم يعْلم</p>
+          <p className="footer-tagline">علم الانسان مالهم يعْلم</p>
           <p style={{ fontFamily: 'Inter,sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>
-            Teaching humans what they did not know.
+            He taught man what he knew not.
           </p>
         </div>
 

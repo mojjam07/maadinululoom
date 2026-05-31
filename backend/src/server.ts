@@ -8,7 +8,17 @@ export function createServer() {
   const app = express()
 
   app.use(helmet())
-  app.use(cors({ origin: config.corsOrigin, credentials: true }))
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true)
+      // Allow configured SPA origins
+      return callback(null, config.corsOrigin === '*' || origin === config.corsOrigin)
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }))
   app.use(express.json({ limit: '10mb' }))
 
   app.get('/healthz', (_req, res) => res.json({ ok: true }))
