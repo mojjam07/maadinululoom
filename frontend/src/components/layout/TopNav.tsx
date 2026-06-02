@@ -29,6 +29,14 @@ export default function TopNav() {
         <a href="#pricing" className="nav-cta">
           Enroll Now
         </a>
+        {/* <div className="nav-auth">
+          <a href="/login" className="nav-link">
+            Login
+          </a>
+          <a href="/register" className="nav-cta">
+            Register
+          </a>
+        </div> */}
       </div>
     </nav>
   )

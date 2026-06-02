@@ -37,7 +37,7 @@ export default function Pricing() {
                 <span className="check">✓</span> Certificate on completion
               </li>
             </ul>
-            <a href="#contact" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
+            <a href="/register" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
               سـجـّل الآن — Register
             </a>
           </div>
@@ -70,7 +70,7 @@ export default function Pricing() {
                 <span className="check">✓</span> Certificate on completion
               </li>
             </ul>
-            <a href="#contact" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
+            <a href="/register" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
               Register Now
             </a>
           </div>
