@@ -32,7 +32,7 @@ export default function Hero() {
           <p className="hero-en">Learn Arabic &amp; Islamic Studies Online — Anytime, Anywhere in the World</p>
 
           <div className="hero-btns">
-            <a href="#pricing" className="btn-primary">
+            <a href="/register" className="btn-primary">
               انضم الآن — Join Now
             </a>
             <a href="#subjects" className="btn-outline">

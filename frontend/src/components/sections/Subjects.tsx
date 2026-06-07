@@ -72,6 +72,18 @@ export default function Subjects() {
             >
               Loading...
             </div>
+          ) : subjects.length === 0 ? (
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                opacity: 0.9,
+                fontFamily: 'Tajawal, sans-serif',
+                padding: '22px 0',
+              }}
+            >
+              No subjects found.
+            </div>
           ) : (
             subjects.map((s) => (
               <button
