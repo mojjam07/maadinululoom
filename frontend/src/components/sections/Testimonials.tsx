@@ -1,55 +1,47 @@
-const testimonials = [
-  {
-    stars: '★★★★★',
-    text: 'ابني تعلم القراءة وقـراءة القرآن خلال شهـرين فقط! المدرس صبور ومتفهمون وجدول مرن جدا لصحيـح العمل.',
-    avatar: 'أ',
-    name: 'أم أحمد',
-    country: '🇳🇬 Nigeria',
-    role: 'Parent',
-  },
-  {
-    stars: '★★★★★',
-    text: 'I started with zero Arabic knowledge. After 3 months, I can read the Qur\'an and understand basic conversations. Amazing teachers!',
-    avatar: 'F',
-    name: 'Fatimah K.',
-    country: '🇬🇧 UK',
-    role: 'Adult Student',
-  },
-  {
-    stars: '★★★★★',
-    text: 'The live Zoom classes are engaging and interactive. My daughter loves her teacher and looks forward to every session. Highly recommended!',
-    avatar: 'S',
-    name: 'Sister Safia',
-    country: '🇨🇦 Canada',
-    role: 'Parent',
-  },
-  {
-    stars: '★★★★★',
-    text: 'كنت مبتدئًا في اللغة العربية، الآن أستطيع قراءة القرآن بشكل صحيح. شكراً لفريق معدن العلوم! ',
-    avatar: 'ع',
-    name: 'عبدالله مالك',
-    country: '🇸🇦 Saudi Arabia',
-    role: 'Teen Student',
-  },
-  {
-    stars: '★★★★★',
-    text: 'The price is unbeatable for the quality of education. For just $5 a month, my children get top-tier Islamic education. Truly a blessing.',
-    avatar: 'H',
-    name: 'Hassan Al-Amin',
-    country: '🇺🇸 USA',
-    role: 'Parent',
-  },
-  {
-    stars: '★★★★★',
-    text: 'التسجيلات تساعدني كثيرا لمراجعة الدروس في أي وقت. الشهادات أضياء جميلة ومفيددة. أنصح الجميع بالنضامامام',
-    avatar: 'م',
-    name: 'مريم بكر',
-    country: '🇲🇾 Malaysia',
-    role: 'Adult Student',
-  },
-]
+import { useEffect, useMemo, useState } from 'react'
+
+type Testimonial = {
+  stars: number | null
+  text: string
+  avatar: string | null
+  name: string | null
+  country: string | null
+  role: string | null
+  created_at: string
+}
 
 export default function Testimonials() {
+  const [items, setItems] = useState<Testimonial[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
+
+  useEffect(() => {
+    let mounted = true
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(`${apiBase}/api/testimonials`, { method: 'GET' })
+        const json = (await res.json().catch(() => ({}))) as { testimonials?: Testimonial[]; error?: string }
+        if (!res.ok) {
+          const msg = typeof json.error === 'string' ? json.error : 'testimonials_failed'
+          throw new Error(`HTTP ${res.status}: ${msg}`)
+        }
+        if (mounted) setItems(json.testimonials || [])
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'testimonials_failed')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      mounted = false
+    }
+  }, [apiBase])
+
   return (
     <section className="testimonials" id="testimonials">
       <div className="section-inner">
@@ -59,25 +51,39 @@ export default function Testimonials() {
           <p className="section-sub">What parents and students say about معدن العلوم</p>
         </div>
 
-        <div className="test-grid">
-          {testimonials.map((t, idx) => (
-            <div key={idx} className="test-card fade-up">
-              <div className="test-stars">{t.stars}</div>
-              <p className="test-text">{t.text}</p>
-              <div className="test-author">
-                <div className="test-avatar">{t.avatar}</div>
-                <div>
-                  <div className="test-name">{t.name}</div>
-                  <div className="test-country">
-                    <span className="country-badge">{t.country}</span> — {t.role}
+        {loading ? (
+          <div style={{ marginTop: 40, opacity: 0.8, textAlign: 'center' }}>Loading...</div>
+        ) : error ? (
+          <div style={{ marginTop: 40, opacity: 0.95, textAlign: 'center', padding: '0 12px' }}>
+            Failed to load testimonials: {error}
+          </div>
+        ) : (
+
+          <div className="test-grid">
+            {items.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', opacity: 0.8, textAlign: 'center' }}>No testimonials yet.</div>
+            ) : (
+              items.map((t, idx) => (
+                <div key={t.created_at + idx} className="test-card fade-up">
+                  <div className="test-stars">{t.stars ? '★★★★★' : '★★★★★'}</div>
+                  <p className="test-text">{t.text}</p>
+                  <div className="test-author">
+                    <div className="test-avatar">{t.avatar || '🙂'}</div>
+                    <div>
+                      <div className="test-name">{t.name || 'Student'}</div>
+                      <div className="test-country">
+                        <span className="country-badge">{t.country || '—'}</span> — {t.role || 'Student'}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </section>
   )
 }
+
 

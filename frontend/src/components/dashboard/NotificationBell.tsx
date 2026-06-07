@@ -40,9 +40,10 @@ export default function NotificationBell() {
 
           // Realtime is not filtered by user_id; filter client-side.
           // Only show notifications for the current user.
-          supabase.auth.getUser().then((r) => {
-
-            const uid = r.data.user?.id
+          // Filter by current user.
+          // Use getSession() to avoid timing issues with realtime callbacks.
+          supabase.auth.getSession().then((s) => {
+            const uid = s.data.session?.user?.id
             if (!uid) return
             if (row.user_id !== uid) return
             setItems((prev) => {
@@ -51,6 +52,7 @@ export default function NotificationBell() {
               return [row, ...prev].slice(0, 20)
             })
           })
+
 
         }
       )

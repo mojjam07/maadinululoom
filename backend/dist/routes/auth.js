@@ -34,9 +34,8 @@ exports.authRouter.post('/register', async (req, res) => {
     return res.json({ ok: true, userId });
 });
 exports.authRouter.post('/login', async (req, res) => {
-    // Backend login with service role cannot issue refresh tokens directly.
-    // We'll return a message instructing frontend to use supabase-js on client.
-    // Phase 2 expects API endpoints though; implement via admin.createUser? Not possible.
-    // We'll support login by using supabaseAdmin.auth.signInWithPassword is not available.
-    return res.status(501).json({ error: 'login_not_implemented_server_side' });
+    // Client-side auth uses Supabase-js (anon key) to create a session.
+    // This endpoint exists only for backward compatibility and will no longer 501.
+    // Frontend should sign in directly with supabase.auth.signInWithPassword.
+    return res.json({ ok: true, note: 'use_supabase_client_login' });
 });

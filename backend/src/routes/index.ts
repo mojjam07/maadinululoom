@@ -14,8 +14,10 @@ import { adminRouter } from './admin'
 import { webhooksRouter } from './webhooks'
 import { certificatesRouter } from './certificates'
 import { quizzesRouter } from './quizzes'
+import { supportRouter } from './support'
 
 export const apiRouter = Router()
+
 
 apiRouter.use('/auth', authRouter)
 apiRouter.use('/profile', profileRouter)
@@ -30,9 +32,11 @@ apiRouter.use('/teacher', teacherRouter)
 apiRouter.use('/notifications', notificationsRouter)
 apiRouter.use('/admin', adminRouter)
 apiRouter.use('/webhooks', webhooksRouter)
+apiRouter.use('/', supportRouter)
 
 apiRouter.use('/certificates', certificatesRouter)
 apiRouter.use('/quizzes', quizzesRouter)
+
 
 
 

@@ -19,10 +19,33 @@ export default function RegisterPage() {
   useEffect(() => {
     ;(async () => {
       const { data } = await supabase.auth.getSession()
-      if (data.session) navigate('/dashboard', { replace: true })
+      const session = data.session
+      if (!session) return
+
+      // If already logged in, redirect to the correct dashboard.
+      // Fetch role from backend profile endpoint.
+      try {
+        const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        const json = (await res.json().catch(() => ({}))) as
+          | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
+          | Record<string, unknown>
+
+        const dbRole =
+          'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
+            ? (json as { profile?: { role?: string } }).profile?.role
+            : undefined
+
+        if (dbRole === 'teacher') navigate('/dashboard/teacher', { replace: true })
+        else navigate('/dashboard', { replace: true })
+      } catch {
+        navigate('/dashboard', { replace: true })
+      }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()

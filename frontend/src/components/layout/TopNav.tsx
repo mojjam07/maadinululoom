@@ -17,7 +17,7 @@ export default function TopNav() {
             <a href="#subjects">Subjects</a>
           </li>
           <li>
-            <a href="#pricing">Pricing</a>
+            <a href="#pricing">Finance</a>
           </li>
           <li>
             <a href="#teachers">Teachers</a>
@@ -26,17 +26,9 @@ export default function TopNav() {
             <a href="#contact">Contact</a>
           </li>
         </ul>
-        <a href="#pricing" className="nav-cta">
+        <a href="/register" className="nav-cta" aria-label="Enroll Now">
           Enroll Now
         </a>
-        {/* <div className="nav-auth">
-          <a href="/login" className="nav-link">
-            Login
-          </a>
-          <a href="/register" className="nav-cta">
-            Register
-          </a>
-        </div> */}
       </div>
     </nav>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 
 export default function Contact() {
@@ -7,13 +7,44 @@ export default function Contact() {
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
 
-  const submitMessage =
-    'شكراً! سيتم التواصل معك قريباً. Thank you! We will contact you soon.'
+  const [status, setStatus] = useState<null | { kind: 'success' | 'error'; text: string }>(null)
 
-  const onSubmit = (e: FormEvent) => {
+  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
+
+  const onSubmit = async (e: FormEvent) => {
+
     e.preventDefault()
-    alert(submitMessage)
+    setStatus(null)
+
+    try {
+      const res = await fetch(`${apiBase}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
+          message: message.trim(),
+          source: 'landing',
+        }),
+      })
+
+      const json = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) {
+        throw new Error(typeof json.error === 'string' ? json.error : 'contact_failed')
+      }
+
+      setStatus({ kind: 'success', text: 'شكراً! تم استلام رسالتك. سيتم التواصل معك قريباً.' })
+      setName('')
+      setEmail('')
+      setPhone('')
+      setMessage('')
+    } catch {
+      setStatus({ kind: 'error', text: 'تعذر إرسال الرسالة حالياً. حاول مرة أخرى.' })
+    }
+
   }
+
 
   return (
     <section className="contact" id="contact">
@@ -27,7 +58,26 @@ export default function Contact() {
         </div>
 
         <div className="contact-grid">
+          {status && (
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                marginBottom: 10,
+                padding: '10px 12px',
+                borderRadius: 12,
+                border: status.kind === 'success' ? '1px solid rgba(212,160,23,0.35)' : '1px solid rgba(220,20,60,0.35)',
+                background: status.kind === 'success' ? 'rgba(212,160,23,0.12)' : 'rgba(220,20,60,0.12)',
+                color: 'rgba(255,255,255,0.9)',
+                fontFamily: "'Tajawal',sans-serif",
+              }}
+              role="status"
+              aria-live="polite"
+            >
+              {status.text}
+            </div>
+          )}
           <div className="fade-up">
+
             <div className="contact-item">
               <div className="contact-icon">📱</div>
               <div>
