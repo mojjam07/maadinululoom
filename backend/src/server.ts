@@ -8,7 +8,8 @@ export function createServer() {
   const app = express()
 
   app.use(helmet())
-  app.use(cors({
+
+  const corsMiddleware = cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true)
@@ -18,8 +19,14 @@ export function createServer() {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-  }))
+  })
+
+  // Apply CORS middleware to both normal requests and preflight OPTIONS.
+  app.use(corsMiddleware)
+  app.options('*', corsMiddleware)
+
   app.use(express.json({ limit: '10mb' }))
+
 
   app.get('/healthz', (_req, res) => res.json({ ok: true }))
 
