@@ -14,12 +14,8 @@ export function createServer() {
       // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true)
 
-      // Temporary verification: allow all origins.
-      // NOTE: You can lock this back down after confirming CORS headers are emitted.
-      return callback(null, true)
-
-      // Allow configured SPA origins (disabled during verification)
-      // return callback(null, config.corsOrigin === '*' || origin === config.corsOrigin)
+      // Allow configured SPA origins (from env)
+      return callback(null, config.corsOrigin === '*' || origin === config.corsOrigin)
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
