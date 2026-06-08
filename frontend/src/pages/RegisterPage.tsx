@@ -82,8 +82,23 @@ export default function RegisterPage() {
       const sess = sessData.session
       if (!sess) throw new Error('missing_session')
 
+      const userId = sess?.user?.id
+      if (typeof userId !== 'string' || userId.trim().length === 0) {
+        throw new Error('missing_user_id')
+      }
+
+      if (typeof apiBase !== 'string' || apiBase.trim().length === 0) {
+        throw new Error('missing_api_base_url')
+      }
+
+      const patchUrl = `${apiBase}/api/profile/${userId}`
+      // Validate URL early so we never call fetch() with an invalid URL value.
+      // This prevents the browser error: "Failed to execute 'fetch' on 'Window': Invalid value".
+      new URL(patchUrl)
+
+
       // Update role in profiles table via backend (protected).
-      const patchRes = await fetch(`${apiBase}/api/profile/${sess.user.id}`, {
+      const patchRes = await fetch(patchUrl, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -94,6 +109,7 @@ export default function RegisterPage() {
           name: name || null,
         }),
       })
+
 
       if (!patchRes.ok) {
         // still allow navigation; dashboard fetch will show failure if profile missing
