@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { apiFetch } from '../../lib/api'
 import type { FormEvent } from 'react'
 
 export default function Contact() {
@@ -9,7 +10,7 @@ export default function Contact() {
 
   const [status, setStatus] = useState<null | { kind: 'success' | 'error'; text: string }>(null)
 
-  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
+  // apiFetch handles API_BASE; no local apiBase needed here.
 
   const onSubmit = async (e: FormEvent) => {
 
@@ -17,9 +18,8 @@ export default function Contact() {
     setStatus(null)
 
     try {
-      const res = await fetch(`${apiBase}/api/contact`, {
+      await apiFetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim() || undefined,
@@ -28,11 +28,6 @@ export default function Contact() {
           source: 'landing',
         }),
       })
-
-      const json = (await res.json().catch(() => ({}))) as { error?: string }
-      if (!res.ok) {
-        throw new Error(typeof json.error === 'string' ? json.error : 'contact_failed')
-      }
 
       setStatus({ kind: 'success', text: 'شكراً! تم استلام رسالتك. سيتم التواصل معك قريباً.' })
       setName('')

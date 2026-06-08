@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { apiFetch } from '../lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -9,33 +10,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
-
   useEffect(() => {
     // If already logged in, go to correct dashboard.
     ;(async () => {
       const { data } = await supabase.auth.getSession()
       const session = data.session
       if (!session) return
+      try {
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
+        const role = json?.profile?.role
 
-      const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      const json = (await res.json().catch(() => ({}))) as
-        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
-        | Record<string, unknown>
-
-      const role =
-        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
-          ? ((json as { profile?: { role?: string } }).profile?.role as
-              | 'student'
-              | 'teacher'
-              | 'admin'
-              | undefined)
-          : undefined
-
-      if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
-      else navigate('/dashboard', { replace: true })
+        if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
+        else navigate('/dashboard', { replace: true })
+        return
+      } catch {
+        navigate('/dashboard', { replace: true })
+        return
+      }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -56,24 +47,16 @@ export default function LoginPage() {
       const session = data.session
       if (!session) throw new Error('missing_session')
 
-      const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-      const json = (await res.json().catch(() => ({}))) as
-        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
-        | Record<string, unknown>
-
-      const role =
-        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
-          ? ((json as { profile?: { role?: string } }).profile?.role as
-              | 'student'
-              | 'teacher'
-              | 'admin'
-              | undefined)
-          : undefined
-
-      if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
-      else navigate('/dashboard', { replace: true })
+      try {
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
+        const role = json?.profile?.role
+        if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
+        else navigate('/dashboard', { replace: true })
+      } catch (err) {
+        // If profile fetch fails, still navigate to default dashboard.
+        console.warn('Profile fetch failed after login:', err)
+        navigate('/dashboard', { replace: true })
+      }
     } catch (e2) {
       const msg = e2 instanceof Error ? e2.message : 'login_failed'
       setError(msg)

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
+import { apiFetch } from '../../lib/api'
 
 export default function Pricing() {
   const [amount, setAmount] = useState<number>(1000)
@@ -18,20 +19,16 @@ export default function Pricing() {
         }
         return
       }
-      const resp = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, amount, currency, student_id: session.user.id }),
-      })
-      type PayInitResp = {
+      const json = await apiFetch<{
         ok?: boolean
         error?: string
         details?: string
         init?: { authorization_url?: string; client_secret?: string }
         payment_ref?: string
-      }
-
-      const json = (await resp.json()) as PayInitResp
+      }>('/api/payments/create', {
+        method: 'POST',
+        body: JSON.stringify({ provider, amount, currency, student_id: session.user.id }),
+      })
       if (!json.ok) return alert(json.error || json.details || 'payment_init_failed')
 
       if (json.init?.authorization_url) {

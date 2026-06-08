@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { apiFetch } from '../../lib/api'
 
 type Testimonial = {
   stars: number | null
@@ -15,20 +16,13 @@ export default function Testimonials() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
-
   useEffect(() => {
     let mounted = true
     async function load() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch(`${apiBase}/api/testimonials`, { method: 'GET' })
-        const json = (await res.json().catch(() => ({}))) as { testimonials?: Testimonial[]; error?: string }
-        if (!res.ok) {
-          const msg = typeof json.error === 'string' ? json.error : 'testimonials_failed'
-          throw new Error(`HTTP ${res.status}: ${msg}`)
-        }
+        const json = await apiFetch<{ testimonials?: Testimonial[] }>('/api/testimonials')
         if (mounted) setItems(json.testimonials || [])
       } catch (e) {
         setError(e instanceof Error ? e.message : 'testimonials_failed')
@@ -40,7 +34,7 @@ export default function Testimonials() {
     return () => {
       mounted = false
     }
-  }, [apiBase])
+  }, [])
 
   return (
     <section className="testimonials" id="testimonials">

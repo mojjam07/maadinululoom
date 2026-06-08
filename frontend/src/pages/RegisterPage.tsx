@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { apiFetch } from '../lib/api'
 
 type Role = 'student' | 'teacher' | 'admin'
 
@@ -14,8 +15,6 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const apiBase = useMemo(() => import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', [])
-
   useEffect(() => {
     ;(async () => {
       const { data } = await supabase.auth.getSession()
@@ -23,20 +22,9 @@ export default function RegisterPage() {
       if (!session) return
 
       // If already logged in, redirect to the correct dashboard.
-      // Fetch role from backend profile endpoint.
       try {
-        const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-        const json = (await res.json().catch(() => ({}))) as
-          | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
-          | Record<string, unknown>
-
-        const dbRole =
-          'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
-            ? (json as { profile?: { role?: string } }).profile?.role
-            : undefined
-
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
+        const dbRole = json?.profile?.role
         if (dbRole === 'teacher') navigate('/dashboard/teacher', { replace: true })
         else navigate('/dashboard', { replace: true })
       } catch {
@@ -87,33 +75,15 @@ export default function RegisterPage() {
         throw new Error('missing_user_id')
       }
 
-      if (typeof apiBase !== 'string' || apiBase.trim().length === 0) {
-        throw new Error('missing_api_base_url')
-      }
-
-      const patchUrl = `${apiBase}/api/profile/${userId}`
-      // Validate URL early so we never call fetch() with an invalid URL value.
-      // This prevents the browser error: "Failed to execute 'fetch' on 'Window': Invalid value".
-      new URL(patchUrl)
-
-
       // Update role in profiles table via backend (protected).
-      const patchRes = await fetch(patchUrl, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sess.access_token}`,
-        },
-        body: JSON.stringify({
-          role,
-          name: name || null,
-        }),
-      })
-
-
-      if (!patchRes.ok) {
-        // still allow navigation; dashboard fetch will show failure if profile missing
-        throw new Error('profile_update_failed')
+      try {
+        await apiFetch(`/api/profile/${userId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role, name: name || null }),
+        })
+      } catch (err) {
+        // If profile patch fails (e.g., no session or RLS), still continue to dashboard.
+        console.warn('Profile patch failed during registration:', err)
       }
 
       if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })

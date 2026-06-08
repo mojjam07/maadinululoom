@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { apiFetch } from '../lib/api'
 
 import SidebarNav from '../components/dashboard/SidebarNav'
 import StatsCards from '../components/dashboard/StatsCards'
@@ -32,31 +33,24 @@ export default function DashboardPage() {
         return
       }
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/profile/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      )
+      try {
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${userId}`)
+        const dbRole = json?.profile?.role
 
-      const json = (await res.json().catch(() => ({}))) as
-        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
-        | Record<string, unknown>
-      const dbRole =
-        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
-          ? (json as { profile?: { role?: string } }).profile?.role
-          : undefined
+        const nextRole =
+          dbRole === 'admin'
+            ? 'admin'
+            : dbRole === 'teacher'
+              ? 'teacher'
+              : 'student'
 
-      const nextRole =
-        dbRole === 'admin'
-          ? 'admin'
-          : dbRole === 'teacher'
-            ? 'teacher'
-            : 'student'
-
-      if (mounted) setRole(nextRole)
+        if (mounted) setRole(nextRole)
+        return
+      } catch (err) {
+        console.warn('Failed to load profile in DashboardPage:', err)
+        // If profile fetch failed, leave role null so UI shows Loading or AuthGate will redirect.
+        return
+      }
     }
     loadRole()
     return () => {

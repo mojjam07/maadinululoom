@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { supabase } from '../../lib/supabaseClient'
+import { apiFetch } from '../../lib/api'
 
 const items = [
   {
@@ -37,8 +38,6 @@ export default function Experience() {
   const navigate = useNavigate()
 
   const handleStudentDashboardClick = useCallback(async () => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
-
     try {
       const { data } = await supabase.auth.getSession()
       const session = data.session
@@ -48,23 +47,14 @@ export default function Experience() {
         return
       }
 
-      const res = await fetch(`${apiBase}/api/profile/${session.user.id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
-
-      const json = (await res.json().catch(() => ({}))) as
-        | { profile?: { role?: 'student' | 'teacher' | 'admin' } }
-        | Record<string, unknown>
-
-      const role =
-        'profile' in json && typeof (json as { profile?: { role?: string } }).profile?.role === 'string'
-          ? ((json as { profile?: { role?: string } }).profile?.role as 'student' | 'teacher' | 'admin' | undefined)
-          : undefined
+      const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
+      const role = json?.profile?.role
 
       if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
       else if (role === 'student' || role === 'admin') navigate('/dashboard', { replace: true })
       else navigate('/login', { replace: true })
-    } catch {
+    } catch (err) {
+      console.warn('Error fetching profile in Experience handler:', err)
       navigate('/login', { replace: true })
     }
   }, [navigate])

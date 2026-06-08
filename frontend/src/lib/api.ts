@@ -1,6 +1,8 @@
 import { supabase } from './supabaseClient'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+// Normalize API base: no trailing slash, empty string allowed for same-origin.
+const rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
+export const API_BASE = rawBase.replace(/\/+$/, '')
 
 // In production we expect to load the API from the same origin (no base URL).
 // In development, set VITE_API_BASE_URL=http://localhost:3000 (or your dev API URL).
@@ -23,8 +25,11 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   if (token) headers.Authorization = `Bearer ${token}`
+  // Ensure path starts with '/'
+  const safePath = path.startsWith('/') ? path : `/${path}`
+  const url = `${API_BASE}${safePath}`
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(url, {
     ...init,
     headers,
   })
