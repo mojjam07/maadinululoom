@@ -11,26 +11,59 @@ const config_js_1 = require("./config.js");
 const routes_1 = require("./routes");
 function createServer() {
     const app = (0, express_1.default)();
+    // Security headers
     app.use((0, helmet_1.default)());
-    app.use((0, cors_1.default)({
+    // CORS
+    const corsMiddleware = (0, cors_1.default)({
         origin: (origin, callback) => {
-            // Allow requests with no origin (mobile apps, curl, server-to-server)
-            if (!origin)
+            // Allow requests without Origin
+            if (!origin) {
                 return callback(null, true);
-            // Allow configured SPA origins
-            return callback(null, config_js_1.config.corsOrigin === '*' || origin === config_js_1.config.corsOrigin);
+            }
+            // Allow configured origins
+            if (config_js_1.config.corsOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            console.warn(`Blocked by CORS: ${origin}`);
+            return callback(new Error('Not allowed by CORS'));
         },
         credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        methods: [
+            'GET',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS',
+        ],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+        ],
+    });
+    // Apply CORS
+    app.use(corsMiddleware);
+    // Handle preflight requests
+    app.options('*', corsMiddleware);
+    // Body parser
+    app.use(express_1.default.json({
+        limit: '10mb',
     }));
-    app.use(express_1.default.json({ limit: '10mb' }));
-    app.get('/healthz', (_req, res) => res.json({ ok: true }));
+    // Health check
+    app.get('/healthz', (_req, res) => {
+        res.json({
+            ok: true,
+            timestamp: new Date().toISOString(),
+        });
+    });
+    // API routes
     app.use('/api', routes_1.apiRouter);
+    // Global error handler
     app.use((err, _req, res, _next) => {
-        // eslint-disable-next-line no-console
         console.error(err);
-        res.status(500).json({ error: 'internal_error' });
+        res.status(500).json({
+            error: 'internal_error',
+        });
     });
     return app;
 }

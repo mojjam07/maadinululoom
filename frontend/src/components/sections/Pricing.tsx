@@ -1,4 +1,58 @@
+import { useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
+
 export default function Pricing() {
+  const [amount, setAmount] = useState<number>(1000)
+  const [currency, setCurrency] = useState<string>('NGN')
+  const [loading, setLoading] = useState(false)
+
+  async function initPayment(provider: 'stripe' | 'paystack') {
+    try {
+      setLoading(true)
+      const { data } = await supabase.auth.getSession()
+      const session = data.session
+      if (!session) {
+        // Ask user to login/register before donating
+        if (confirm('To process donations please sign in or register. Go to register?')) {
+          window.location.href = '/register'
+        }
+        return
+      }
+      const resp = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, amount, currency, student_id: session.user.id }),
+      })
+      type PayInitResp = {
+        ok?: boolean
+        error?: string
+        details?: string
+        init?: { authorization_url?: string; client_secret?: string }
+        payment_ref?: string
+      }
+
+      const json = (await resp.json()) as PayInitResp
+      if (!json.ok) return alert(json.error || json.details || 'payment_init_failed')
+
+      if (json.init?.authorization_url) {
+        window.location.href = json.init.authorization_url
+        return
+      }
+
+      if (json.init?.client_secret) {
+        alert('Payment initialized (client secret): ' + json.init.client_secret)
+        return
+      }
+
+      alert('Payment initialized — reference: ' + json.payment_ref)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('Payment init error: ' + msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="pricing" id="pricing">
       <div className="section-inner">
@@ -9,70 +63,69 @@ export default function Pricing() {
         </div>
 
         <div className="pricing-grid">
-          <div className="price-card green fade-up">
-            <div className="price-badge">🤲 دعم طالب</div>
+          <div className="price-card support fade-up">
+            <div className="price-badge">🤲 دعم المشروع</div>
             <div style={{ marginTop: 30 }}>
-              <div className="price-label">مساهمة شهرية</div>
+              <div className="price-label">اختر المبلغ والعملة</div>
               <div className="price-amount">
-                ₦1000<span className="price-period">/شهر</span>
+                {currency === 'NGN' ? '₦' : '$'}{amount}
+                <span className="price-period">/تبرع</span>
               </div>
             </div>
-            <ul className="price-features">
-              <li>
-                <span className="check">✓</span> دعم محتوى الدروس والمواد التعليمية
-              </li>
-              <li>
-                <span className="check">✓</span> متابعة الواجبات والتقارير للطلاب
-              </li>
-              <li>
-                <span className="check">✓</span> توفير ملخصات وموارد مساندة
-              </li>
-              <li>
-                <span className="check">✓</span> دعم الاستمرارية خلال الشهر
-              </li>
-              <li>
-                <span className="check">✓</span> قناة تواصل للطلاب (WhatsApp)
-              </li>
-              <li>
-                <span className="check">✓</span> دعم تجهيزات المتابعة والتصحيح
-              </li>
-            </ul>
-            <a href="/contact" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
-              ادعم الآن — Support
-            </a>
-          </div>
 
-          <div className="price-card gold fade-up">
-            <div className="price-badge">🌟 راعٍ تعليمي</div>
-            <div style={{ marginTop: 30 }}>
-              <div className="price-label">مساهمة شهرية</div>
-              <div className="price-amount">
-                $1<span className="price-period">/month</span>
-              </div>
+            <div style={{ marginTop: 16 }}>
+              <label style={{ marginRight: 8 }}>
+                <input
+                  type="radio"
+                  name="currency"
+                  checked={currency === 'NGN'}
+                  onChange={() => {
+                    setCurrency('NGN')
+                    setAmount(1000)
+                  }}
+                />{' '}
+                NGN
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="currency"
+                  checked={currency === 'USD'}
+                  onChange={() => {
+                    setCurrency('USD')
+                    setAmount(1)
+                  }}
+                />{' '}
+                USD
+              </label>
             </div>
+
+            <div style={{ marginTop: 14 }}>
+              <input
+                aria-label="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                style={{ width: 140, padding: '8px 10px' }}
+              />
+            </div>
+
             <ul className="price-features">
               <li>
-                <span className="check">✓</span> تمويل تجهيزات التعليم عن بُعد
+                <span className="check">✓</span> دعم مباشر للطلاب والمحتوى
               </li>
               <li>
-                <span className="check">✓</span> دعم إعداد الدروس وتسجيلها
+                <span className="check">✓</span> شكر وذكر في مصادر المشروع
               </li>
               <li>
-                <span className="check">✓</span> مساعدة في دعم المحتوى والموارد
-              </li>
-              <li>
-                <span className="check">✓</span> تمكين استمرار المعلمين والاختصاصيين
-              </li>
-              <li>
-                <span className="check">✓</span> دعم برامج التحفيز والمتابعة
-              </li>
-              <li>
-                <span className="check">✓</span> مساهمة في توفير شهادات إتمام الدراسة
+                <span className="check">✓</span> يمكنك اختيار وسيلة الدفع المفضلة
               </li>
             </ul>
-            <a href="/contact" className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
-              كن راعياً — Become a Sponsor
-            </a>
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+              <button className="btn-primary" disabled={loading} onClick={() => initPayment('paystack')}>دفع عبر Paystack</button>
+              <button className="btn-primary" disabled={loading} onClick={() => initPayment('stripe')}>دفع عبر Stripe</button>
+            </div>
           </div>
         </div>
       </div>

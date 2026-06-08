@@ -15,6 +15,7 @@ import { webhooksRouter } from './webhooks'
 import { certificatesRouter } from './certificates'
 import { quizzesRouter } from './quizzes'
 import { supportRouter } from './support'
+import { paymentsRouter } from './payments.js'
 
 export const apiRouter = Router()
 
@@ -33,6 +34,8 @@ apiRouter.use('/notifications', notificationsRouter)
 apiRouter.use('/admin', adminRouter)
 apiRouter.use('/webhooks', webhooksRouter)
 apiRouter.use('/', supportRouter)
+
+apiRouter.use('/payments', paymentsRouter)
 
 apiRouter.use('/certificates', certificatesRouter)
 apiRouter.use('/quizzes', quizzesRouter)

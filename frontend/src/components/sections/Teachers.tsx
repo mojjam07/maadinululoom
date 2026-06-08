@@ -5,7 +5,16 @@ const teachers = [
   { avatar: '👩‍🎓', name: 'الأستاذة زينب', qual: 'Hifz Certificate', subj: 'Hifzul Qur\'an' },
 ]
 
+import { useRef } from 'react'
+
 export default function Teachers() {
+  const ref = useRef<HTMLDivElement | null>(null)
+
+  function scrollBy(offset: number) {
+    if (!ref.current) return
+    ref.current.scrollBy({ left: offset, behavior: 'smooth' })
+  }
+
   return (
     <section className="teachers" id="teachers">
       <div className="section-inner">
@@ -15,15 +24,19 @@ export default function Teachers() {
           <p className="section-sub">Qualified scholars dedicated to your learning journey</p>
         </div>
 
-        <div className="teachers-grid">
-          {teachers.map((t, idx) => (
-            <div key={idx} className="teacher-card fade-up">
-              <div className="teacher-avatar">{t.avatar}</div>
-              <div className="teacher-name">{t.name}</div>
-              <div className="teacher-qual">{t.qual}</div>
-              <div className="teacher-subj">{t.subj}</div>
-            </div>
-          ))}
+        <div style={{ position: 'relative' }}>
+          <button className="teachers-scroll-btn left" onClick={() => scrollBy(-300)} aria-label="Scroll left">◀</button>
+          <div ref={ref} className="teachers-grid">
+            {teachers.map((t, idx) => (
+              <div key={idx} className="teacher-card fade-up">
+                <div className="teacher-avatar">{t.avatar}</div>
+                <div className="teacher-name">{t.name}</div>
+                <div className="teacher-qual">{t.qual}</div>
+                <div className="teacher-subj">{t.subj}</div>
+              </div>
+            ))}
+          </div>
+          <button className="teachers-scroll-btn right" onClick={() => scrollBy(300)} aria-label="Scroll right">▶</button>
         </div>
       </div>
     </section>

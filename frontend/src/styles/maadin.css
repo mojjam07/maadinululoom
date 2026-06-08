@@ -115,18 +115,23 @@ section{padding:90px 5%}
 
 /* PRICING */
 .pricing{background:var(--white)}
-.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;max-width:800px;margin:50px auto 0}
-.price-card{border-radius:24px;padding:40px;position:relative;overflow:hidden}
-.price-card.green{background:linear-gradient(135deg,var(--emerald),var(--emerald-light));border:1px solid rgba(212,160,23,0.3)}
-.price-card.gold{background:linear-gradient(135deg,#3a2000,#5a3300);border:1px solid rgba(212,160,23,0.5)}
-.price-badge{position:absolute;top:20px;left:20px;background:var(--gold);color:var(--emerald);padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif}
-.price-label{font-family:'Cairo',sans-serif;color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:8px}
-.price-amount{font-family:'Poppins',sans-serif;color:var(--white);font-size:48px;font-weight:900;line-height:1}
-.price-period{font-size:16px;font-weight:400;color:rgba(255,255,255,0.6)}
-.price-features{list-style:none;margin:24px 0 32px}
-.price-features li{font-family:'Tajawal',sans-serif;color:rgba(255,255,255,0.85);font-size:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;max-width:800px;margin:50px auto 0;justify-items:center}
+.price-card{border-radius:24px;padding:36px;position:relative;overflow:hidden;background:var(--white);border:1px solid rgba(0,0,0,0.04);box-shadow:0 8px 30px rgba(11,61,46,0.04)}
+.price-card.green{background:linear-gradient(135deg,var(--emerald),var(--emerald-light));border:1px solid rgba(212,160,23,0.3);color:var(--white)}
+.price-card.gold{background:linear-gradient(135deg,#3a2000,#5a3300);border:1px solid rgba(212,160,23,0.5);color:var(--white)}
+.price-card.support{background:linear-gradient(180deg,var(--white),#fbf9f6);border:1px solid var(--glass-border);box-shadow:0 18px 40px rgba(11,61,46,0.06)}
+.price-badge{position:absolute;top:18px;left:18px;background:var(--gold);color:var(--emerald);padding:6px 14px;border-radius:50px;font-size:12px;font-weight:700;font-family:'Poppins',sans-serif}
+.price-label{font-family:'Cairo',sans-serif;color:var(--emerald);font-size:14px;margin-bottom:8px}
+.price-amount{font-family:'Poppins',sans-serif;color:var(--emerald);font-size:40px;font-weight:900;line-height:1}
+.price-period{font-size:14px;font-weight:700;color:rgba(11,61,46,0.6);margin-left:8px}
+.price-features{list-style:none;margin:18px 0 22px}
+.price-features li{font-family:'Tajawal',sans-serif;color:var(--charcoal);font-size:14px;padding:10px 0;border-bottom:1px solid rgba(11,61,46,0.04);display:flex;align-items:center;gap:10px}
 .price-features li:last-child{border:none}
-.check{color:var(--gold);font-weight:700}
+.check{color:var(--gold);font-weight:800}
+
+/* Center single support card */
+.pricing-grid:empty{display:block}
+.pricing-grid > .price-card{width:420px}
 
 /* TESTIMONIALS */
 .testimonials{background:var(--cream)}
@@ -142,24 +147,30 @@ section{padding:90px 5%}
 
 /* TEACHERS */
 .teachers{background:var(--white)}
-.teachers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px;margin-top:50px}
-.teacher-card{background:var(--cream);border-radius:20px;padding:28px;text-align:center;transition:all .3s;border:1.5px solid transparent}
+.teachers-grid{display:flex;gap:24px;margin-top:50px;padding-bottom:8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.teacher-card{background:var(--cream);border-radius:20px;padding:28px;text-align:center;transition:all .3s;border:1.5px solid transparent;flex:0 0 220px;scroll-snap-align:start}
 .teacher-card:hover{transform:translateY(-5px);border-color:rgba(11,61,46,0.2);background:var(--white)}
 .teacher-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--emerald),var(--emerald-light));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;border:3px solid var(--gold)}
 .teacher-name{font-family:'Cairo',sans-serif;font-weight:700;font-size:16px;color:var(--emerald);margin-bottom:4px}
 .teacher-qual{font-family:'Tajawal',sans-serif;font-size:12px;color:#666;margin-bottom:8px}
 .teacher-subj{display:inline-block;background:rgba(212,160,23,0.15);color:#8b6400;padding:3px 12px;border-radius:50px;font-size:11px;font-family:'Poppins',sans-serif;font-weight:600}
 
+/* Scroll controls for teachers */
+.teachers-scroll-btn{position:absolute;top:50%;transform:translateY(-50%);background:var(--white);border-radius:50%;width:36px;height:36px;border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.teachers-scroll-btn.left{left:-10px}
+.teachers-scroll-btn.right{right:-10px}
+.teachers-scroll-btn:active{transform:translateY(-50%) scale(0.96)}
+
 /* FAQ */
 .faq{background:var(--cream)}
 .faq-list{max-width:780px;margin:50px auto 0;display:flex;flex-direction:column;gap:14px}
-.faq-item{background:var(--white);border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
-.faq-q{padding:20px 24px;font-family:'Cairo',sans-serif;font-weight:700;font-size:15px;color:var(--emerald);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s;direction:rtl}
+.faq-item{background:var(--white);border-radius:16px;overflow:hidden;border:1px solid rgba(11,61,46,0.06);box-shadow:0 8px 20px rgba(11,61,46,0.03)}
+.faq-q{padding:18px 22px;font-family:'Cairo',sans-serif;font-weight:800;font-size:15px;color:var(--emerald);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .18s;direction:rtl}
 .faq-q:hover{background:rgba(11,61,46,0.03)}
-.faq-arrow{font-size:18px;transition:transform .3s;flex-shrink:0}
-.faq-a{font-family:'Tajawal',sans-serif;font-size:14px;color:#555;line-height:1.7;padding:0 24px 20px;display:none;direction:rtl}
+.faq-arrow{font-size:18px;transition:transform .28s;flex-shrink:0}
+.faq-a{font-family:'Tajawal',sans-serif;font-size:14px;color:#555;line-height:1.8;padding:0 22px;direction:rtl;max-height:0;overflow:hidden;transition:max-height .32s ease,padding .2s}
 .faq-item.open .faq-arrow{transform:rotate(180deg)}
-.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-a{max-height:420px;padding:0 22px 20px}
 
 /* CONTACT */
 .contact{background:var(--emerald)}
