@@ -47,13 +47,6 @@ export default function AuthGate({ role, children, fallbackPath = '/' }: AuthGat
             return
           }
         }
-
-
-
-        if (userRole !== role && role !== 'admin') {
-          navigate(fallbackPath, { replace: true })
-          return
-        }
       } finally {
         if (mounted) setLoading(false)
       }

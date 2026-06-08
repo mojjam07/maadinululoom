@@ -5,21 +5,50 @@ import { createClient } from '@supabase/supabase-js'
 // User signs in using Supabase-js and the session token is sent to backend
 // via Authorization header.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const rawAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn(
-    'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. Frontend auth may not work.'
-  )
+function sanitizeEnvValue(v?: string) {
+  if (!v) return undefined
+  const t = v.trim()
+  // strip surrounding single/double quotes if present
+  return t.replace(/^"(.*)"$/, '$1').replace(/^\'(.*)\'$/, '$1')
 }
 
+const SUPABASE_URL = sanitizeEnvValue(rawUrl)
+const SUPABASE_ANON_KEY = sanitizeEnvValue(rawAnon)
+
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. Frontend auth may not work.', {
+    VITE_SUPABASE_URL: SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? '***REDACTED***' : undefined,
+  })
   throw new Error(
     'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. Add them to frontend/.env.local and restart the dev server.'
   )
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// Validate SUPABASE_URL is a proper URL to avoid passing invalid input to fetch
+try {
+  // eslint-disable-next-line no-new
+  new URL(SUPABASE_URL)
+} catch (e) {
+  console.error('VITE_SUPABASE_URL is not a valid URL:', SUPABASE_URL)
+  throw new Error('VITE_SUPABASE_URL is not a valid URL. Check frontend/.env.local')
+}
+
+let _supabase
+try {
+  _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+} catch (err) {
+  console.error('Failed to create Supabase client', {
+    VITE_SUPABASE_URL: SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? '***REDACTED***' : undefined,
+    error: err,
+  })
+  throw err
+}
+
+export const supabase = _supabase
 
 
