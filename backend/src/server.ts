@@ -24,7 +24,14 @@ export function createServer() {
 
   // Apply CORS middleware to both normal requests and preflight OPTIONS.
   app.use(corsMiddleware)
-  app.options('*', corsMiddleware)
+
+  // Explicit preflight handler so OPTIONS always includes Access-Control-* headers.
+  app.options('*', (req, res) => {
+    corsMiddleware(req, res, () => {
+      res.sendStatus(204)
+    })
+  })
+
 
   app.use(express.json({ limit: '10mb' }))
 
