@@ -19,8 +19,16 @@ export default function LoginPage() {
       const session = data.session
       if (!session) return
       try {
-        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
-        const role = json?.profile?.role
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } | null }>(`/api/profile/${session.user.id}`)
+        const profile = json?.profile ?? null
+
+        // If profile row is missing, do not auto-redirect; allow user to login or create profile.
+        if (profile === null) {
+          console.warn('LoginPage: profile missing on mount; staying on login')
+          return
+        }
+
+        const role = profile.role
 
         if (!redirected.current) {
           if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
@@ -28,11 +36,11 @@ export default function LoginPage() {
           redirected.current = true
         }
         return
-      } catch {
-        if (!redirected.current) {
-          navigate('/dashboard', { replace: true })
-          redirected.current = true
-        }
+      } catch (err) {
+        // If profile lookup fails (profile not created yet or backend error),
+        // do not auto-redirect. Stay on the login page so the user can sign in
+        // with valid credentials or the frontend can create the profile.
+        console.warn('LoginPage: profile fetch failed on mount, staying on login', err)
         return
       }
     })()

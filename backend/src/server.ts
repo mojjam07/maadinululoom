@@ -19,6 +19,16 @@ export function createServer() {
         return callback(null, true);
       }
 
+      // Allow any localhost origin (different dev ports) to avoid CORS during local development
+      try {
+        const lower = origin.toLowerCase()
+        if (lower.startsWith('http://localhost') || lower.startsWith('https://localhost')) {
+          return callback(null, true)
+        }
+      } catch (e) {
+        // ignore and continue to configured origins check
+      }
+
       // Allow configured origins
       if (config.corsOrigins.includes(origin)) {
         return callback(null, true);

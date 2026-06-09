@@ -25,8 +25,16 @@ export default function RegisterPage() {
       // If already logged in, attempt to redirect to the correct dashboard.
       // Only redirect when we can successfully fetch the user's profile/role.
       try {
-        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
-        const dbRole = json?.profile?.role
+        const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } | null }>(`/api/profile/${session.user.id}`)
+        const profile = json?.profile ?? null
+
+        if (profile === null) {
+          console.warn('RegisterPage: profile missing on mount; staying on register')
+          setSessionExistsButProfileFail(true)
+          return
+        }
+
+        const dbRole = profile.role
         if (!redirected.current) {
           if (dbRole === 'teacher') navigate('/dashboard/teacher', { replace: true })
           else navigate('/dashboard', { replace: true })

@@ -27,8 +27,14 @@ exports.profileRouter.patch('/:id', requireAuth_1.requireAuth, async (req, res) 
         if (k in req.body)
             patch[k] = req.body[k];
     }
-    const { data, error } = await supabaseAdmin_1.supabaseAdmin.from('profiles').update(patch).eq('id', id).select('id,name,role,country,phone,avatar').single();
+    // Use upsert to create the profile row if it doesn't exist yet (client-side signups may not create it)
+    const upsertBody = { id, ...patch };
+    const { data, error } = await supabaseAdmin_1.supabaseAdmin
+        .from('profiles')
+        .upsert(upsertBody, { onConflict: 'id' })
+        .select('id,name,role,country,phone,avatar')
+        .single();
     if (error)
-        return res.status(400).json({ error: 'profile_update_failed' });
+        return res.status(400).json({ error: 'profile_update_failed', details: error.message });
     return res.json({ profile: data });
 });
