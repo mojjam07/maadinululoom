@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function TopNav() {
   return (
     <nav>
@@ -26,9 +28,9 @@ export default function TopNav() {
             <a href="#contact">Contact</a>
           </li>
         </ul>
-        <a href="/register" className="nav-cta" aria-label="Enroll Now">
+        <Link to="/register" className="nav-cta" aria-label="Enroll Now">
           Enroll Now
-        </a>
+        </Link>
       </div>
     </nav>
   )

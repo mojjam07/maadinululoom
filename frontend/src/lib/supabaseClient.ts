@@ -12,7 +12,7 @@ function sanitizeEnvValue(v?: string) {
   if (!v) return undefined
   const t = v.trim()
   // strip surrounding single/double quotes if present
-  return t.replace(/^"(.*)"$/, '$1').replace(/^\'(.*)\'$/, '$1')
+  return t.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1')
 }
 
 const SUPABASE_URL = sanitizeEnvValue(rawUrl)
@@ -29,13 +29,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 // Validate SUPABASE_URL is a proper URL to avoid passing invalid input to fetch
-try {
-  // eslint-disable-next-line no-new
-  new URL(SUPABASE_URL)
-} catch (e) {
-  console.error('VITE_SUPABASE_URL is not a valid URL:', SUPABASE_URL)
-  throw new Error('VITE_SUPABASE_URL is not a valid URL. Check frontend/.env.local')
-}
+new URL(SUPABASE_URL)
 
 let _supabase
 try {

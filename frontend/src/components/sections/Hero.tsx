@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Hero() {
   return (
     <section className="hero" id="home">
@@ -32,9 +34,9 @@ export default function Hero() {
           <p className="hero-en">Learn Arabic &amp; Islamic Studies Online — Anytime, Anywhere in the World</p>
 
           <div className="hero-btns">
-            <a href="/register" className="btn-primary">
+            <Link to="/register" className="btn-primary">
               انضم الآن — Join Now
-            </a>
+            </Link>
             <a href="#subjects" className="btn-outline">
               View Courses →
             </a>

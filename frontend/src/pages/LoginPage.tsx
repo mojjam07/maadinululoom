@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { apiFetch } from '../lib/api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const redirected = useRef(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,11 +22,17 @@ export default function LoginPage() {
         const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
         const role = json?.profile?.role
 
-        if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
-        else navigate('/dashboard', { replace: true })
+        if (!redirected.current) {
+          if (role === 'teacher') navigate('/dashboard/teacher', { replace: true })
+          else navigate('/dashboard', { replace: true })
+          redirected.current = true
+        }
         return
       } catch {
-        navigate('/dashboard', { replace: true })
+        if (!redirected.current) {
+          navigate('/dashboard', { replace: true })
+          redirected.current = true
+        }
         return
       }
     })()
@@ -87,6 +95,8 @@ export default function LoginPage() {
                 <span>Email</span>
                 <input
                   className="maadin-input"
+                  name="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   type="email"
@@ -99,6 +109,8 @@ export default function LoginPage() {
                 <span>Password</span>
                 <input
                   className="maadin-input"
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   type="password"

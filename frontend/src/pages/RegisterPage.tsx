@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { apiFetch } from '../lib/api'
@@ -7,6 +7,7 @@ type Role = 'student' | 'teacher' | 'admin'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const redirected = useRef(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -14,21 +15,28 @@ export default function RegisterPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sessionExistsButProfileFail, setSessionExistsButProfileFail] = useState(false)
 
   useEffect(() => {
     ;(async () => {
       const { data } = await supabase.auth.getSession()
       const session = data.session
       if (!session) return
-
-      // If already logged in, redirect to the correct dashboard.
+      // If already logged in, attempt to redirect to the correct dashboard.
+      // Only redirect when we can successfully fetch the user's profile/role.
       try {
         const json = await apiFetch<{ profile?: { role?: 'student' | 'teacher' | 'admin' } }>(`/api/profile/${session.user.id}`)
         const dbRole = json?.profile?.role
-        if (dbRole === 'teacher') navigate('/dashboard/teacher', { replace: true })
-        else navigate('/dashboard', { replace: true })
-      } catch {
-        navigate('/dashboard', { replace: true })
+        if (!redirected.current) {
+          if (dbRole === 'teacher') navigate('/dashboard/teacher', { replace: true })
+          else navigate('/dashboard', { replace: true })
+          redirected.current = true
+        }
+      } catch (err) {
+        // If profile fetch fails, avoid auto-redirect — leaving the registration
+        // page avoids a redirect loop between /dashboard (AuthGate) and /login.
+        console.warn('RegisterPage: failed to fetch profile; staying on /register', err)
+        setSessionExistsButProfileFail(true)
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,6 +126,8 @@ export default function RegisterPage() {
                 <span>Name</span>
                 <input
                   className="maadin-input"
+                  name="name"
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   type="text"
@@ -129,6 +139,8 @@ export default function RegisterPage() {
                 <span>Email</span>
                 <input
                   className="maadin-input"
+                  name="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   type="email"
@@ -141,6 +153,8 @@ export default function RegisterPage() {
                 <span>Password</span>
                 <input
                   className="maadin-input"
+                  name="password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   type="password"
@@ -159,6 +173,39 @@ export default function RegisterPage() {
               </label>
 
               {error && <div className="maadin-auth-error">{error}</div>}
+
+              {sessionExistsButProfileFail && (
+                <div className="maadin-auth-warning" style={{ marginBottom: 12 }}>
+                  <div style={{ marginBottom: 8 }}>
+                    We detected an existing session but couldn't load your profile. If you expected to be logged out,
+                    please sign out before registering a new account.
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className="maadin-btn"
+                      onClick={async () => {
+                        try {
+                          await supabase.auth.signOut()
+                          // reload to clear any client-side session state
+                          window.location.reload()
+                        } catch (e) {
+                          console.warn('Sign out failed:', e)
+                        }
+                      }}
+                    >
+                      Sign out
+                    </button>
+                    <button
+                      type="button"
+                      className="maadin-btn maadin-btn-outline"
+                      onClick={() => setSessionExistsButProfileFail(false)}
+                    >
+                      Continue anyway
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <button className="maadin-btn maadin-btn-primary" type="submit" disabled={loading}>
                 {loading ? 'Creating...' : 'Create account'}
