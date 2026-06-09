@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 export default function TopNav() {
+  const [open, setOpen] = useState(false)
+
+  function close() {
+    setOpen(false)
+  }
+
   return (
-    <nav>
+    <nav className={open ? 'nav-open' : ''}>
       <div className="nav-inner">
         <div className="logo">
           <div className="logo-icon">💖</div>
@@ -11,7 +18,17 @@ export default function TopNav() {
             <span>Arabic &amp; Islamic Studies</span>
           </div>
         </div>
-        <ul className="nav-links">
+
+        <button
+          className="nav-toggle"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+          onClick={() => setOpen((s) => !s)}
+        >
+          <span className="hamburger" />
+        </button>
+
+        <ul className="nav-links" onClick={close}>
           <li>
             <a href="#about">About</a>
           </li>
@@ -28,7 +45,8 @@ export default function TopNav() {
             <a href="#contact">Contact</a>
           </li>
         </ul>
-        <Link to="/register" className="nav-cta" aria-label="Enroll Now">
+
+        <Link to="/register" className="nav-cta" aria-label="Enroll Now" onClick={close}>
           Enroll Now
         </Link>
       </div>

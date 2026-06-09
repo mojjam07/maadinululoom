@@ -119,7 +119,7 @@ export default function Pricing() {
               </li>
             </ul>
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
               <button className="btn-primary" disabled={loading} onClick={() => initPayment('paystack')}>دفع عبر Paystack</button>
               <button className="btn-primary" disabled={loading} onClick={() => initPayment('stripe')}>دفع عبر Stripe</button>
             </div>
