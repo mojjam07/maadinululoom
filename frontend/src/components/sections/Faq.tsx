@@ -44,20 +44,31 @@ export default function Faq() {
           {items.map((it, idx) => {
             const isOpen = openIndex === idx
             return (
-              <div key={idx} className={['faq-item', isOpen ? 'open' : '', 'fade-up'].filter(Boolean).join(' ')}>
-                <button
-                  type="button"
-                  className="faq-q"
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-a-${idx}`}
-                  onClick={() => setOpenIndex((prev) => (prev === idx ? null : idx))}
+                <div
+                  key={idx}
+                  className={['faq-item', isOpen ? 'open' : '', 'fade-up'].filter(Boolean).join(' ')}
                 >
-                  {it.q}
-                  <span className="faq-arrow">⌄</span>
-                </button>
-                <div id={`faq-a-${idx}`} className="faq-a">
-                  {it.a}
-                </div>
+                  <button
+                    type="button"
+                    className="faq-q"
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-a-${idx}`}
+                    id={`faq-q-${idx}`}
+                    onClick={() => setOpenIndex((prev) => (prev === idx ? null : idx))}
+                  >
+                    {it.q}
+                    <span className="faq-arrow">⌄</span>
+                  </button>
+
+                  <div
+                    id={`faq-a-${idx}`}
+                    className="faq-a"
+                    role="region"
+                    aria-labelledby={`faq-q-${idx}`}
+                    tabIndex={isOpen ? 0 : -1}
+                  >
+                    {it.a}
+                  </div>
               </div>
             )
           })}

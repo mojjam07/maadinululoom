@@ -38,21 +38,58 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(11,61,46,0.
 
 @media (max-width: 900px){
   .nav-inner{gap:12px}
-  .nav-links{position:fixed;top:70px;right:0;left:0;display:flex;flex-direction:column;gap:12px;padding:18px 5%;background:linear-gradient(180deg,rgba(11,61,46,0.98),rgba(11,61,46,0.95));transition:transform .25s ease,opacity .2s;transform:translateY(-12px);opacity:0;pointer-events:none}
+  .nav{
+    /* so .nav-open can toggle the child links */
+    transition:background .2s;
+  }
+  .nav-links{
+    position:fixed;
+    top:70px;
+    right:0;
+    left:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:18px 5%;
+    background:linear-gradient(180deg,rgba(11,61,46,0.98),rgba(11,61,46,0.95));
+    transition:transform .25s ease,opacity .2s;
+    transform:translateY(-12px);
+    opacity:0;
+    pointer-events:none;
+
+    /* prevent clipped menu on shorter phones */
+    max-height:calc(100svh - 70px);
+    overflow:auto;
+  }
+  /* IMPORTANT: toggle is applied on the <nav> element, not on an inner wrapper */
   nav.nav-open .nav-links{transform:none;opacity:1;pointer-events:auto}
   .nav-links li{text-align:center}
   .nav-cta{display:block;margin-left:0;margin-right:0}
   .nav-toggle{display:flex}
   .nav-inner{align-items:center}
+
+
+  /* avoid logo text overflow on narrow screens */
+  .logo-text{max-width:58vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
 @media (max-width: 480px){
   section{padding:70px 4%}
+
+  /* Pricing */
   .pricing-grid{gap:20px;max-width:100%;margin:30px auto 0;padding:0 8px}
-  .pricing-grid > .price-card{width:100%;padding:24px}
-  .price-amount{font-size:32px}
+  .pricing-grid > .price-card{width:100% !important;padding:22px}
+  .price-amount{font-size:28px}
   .price-badge{top:12px;left:12px;padding:6px 12px}
+
+  /* make amount input fit */
+  .price-card input[type="number"]{width:100%;max-width:170px}
 }
+
+@media (max-width: 360px){
+  .price-amount{font-size:24px}
+}
+
 
 /* HERO */
 .hero{min-height:100vh;background:linear-gradient(135deg,#061f17 0%,var(--emerald) 50%,#0d4a36 100%);position:relative;overflow:hidden;display:flex;align-items:center;padding:100px 5% 60px}
@@ -193,7 +230,7 @@ section{padding:90px 5%}
 .faq-q{padding:18px 22px;font-family:'Cairo',sans-serif;font-weight:800;font-size:15px;color:var(--emerald);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .18s;direction:rtl}
 .faq-q:hover{background:rgba(11,61,46,0.03)}
 .faq-arrow{font-size:18px;transition:transform .28s;flex-shrink:0}
-.faq-a{font-family:'Tajawal',sans-serif;font-size:14px;color:#555;line-height:1.8;padding:0 22px;direction:rtl;max-height:0;overflow:hidden;transition:max-height .32s ease,padding .2s}
+.faq-a{font-family:'Tajawal',sans-serif;font-size:14px;color:#555;line-height:1.8;padding:0 22px 0;direction:rtl;max-height:0;overflow:hidden;transition:max-height .32s ease,padding .2s}
 .faq-item.open .faq-arrow{transform:rotate(180deg)}
 .faq-item.open .faq-a{max-height:420px;padding:0 22px 20px}
 
@@ -446,8 +483,9 @@ footer{background:#040f0a;color:rgba(255,255,255,0.65);padding:60px 5% 30px}
   .hero-right{display:none}
   .bento{grid-template-columns:1fr 1fr}
   .bento-card.wide{grid-column:span 1}
-  .nav-links{display:none}
+  /* Nav visibility is controlled by nav-open + .nav-links transform/opacity/pointer-events */
 }
+
 @media(max-width:600px){
   .bento{grid-template-columns:1fr}
   .about-features{grid-template-columns:1fr}

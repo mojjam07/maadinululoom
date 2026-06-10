@@ -76,7 +76,11 @@ export default function RegisterPage() {
       // If signUp requires email confirmation, there may be no session yet.
       const session = data.session
       if (!session) {
-        setError('Check your email to confirm your account (no session yet).')
+        // Supabase will handle sending the confirmation email. If you don't receive it,
+        // it’s usually due to Supabase Auth email delivery / SMTP configuration.
+        setError(
+          'Check your email to confirm your account. If you don\'t see it, check spam/promotions and verify your Supabase Auth email (SMTP) settings. If needed, use the “Resend verification email” button below.'
+        )
         return
       }
 
@@ -180,7 +184,34 @@ export default function RegisterPage() {
                 </select>
               </label>
 
-              {error && <div className="maadin-auth-error">{error}</div>}
+              {error && (
+                <div className="maadin-auth-error">
+                  {error}
+                  {' '}
+                  {' '}
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      className="maadin-btn maadin-btn-outline"
+                      disabled={loading}
+                      onClick={async () => {
+                        try {
+                          // If email confirmation is required, Supabase provides a resend mechanism.
+                          // Depending on your Supabase version/project settings, this may exist or throw.
+                          const res = await supabase.auth.resend({ email })
+                          if (res?.error) throw res.error
+                        } catch (e) {
+                          console.warn('Failed to resend verification email:', e)
+                          setError('Could not resend verification email automatically. Please check your Supabase Auth email settings.')
+                        }
+                      }}
+                    >
+                      Resend verification email
+                    </button>
+                  </div>
+                </div>
+              )}
+
 
               {sessionExistsButProfileFail && (
                 <div className="maadin-auth-warning" style={{ marginBottom: 12 }}>
