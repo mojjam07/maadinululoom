@@ -198,7 +198,7 @@ export default function RegisterPage() {
                         try {
                           // If email confirmation is required, Supabase provides a resend mechanism.
                           // Depending on your Supabase version/project settings, this may exist or throw.
-                          const res = await supabase.auth.resend({ email })
+const res = await supabase.auth.resend({ type: 'signup', email })
                           if (res?.error) throw res.error
                         } catch (e) {
                           console.warn('Failed to resend verification email:', e)
