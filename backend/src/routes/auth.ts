@@ -4,6 +4,8 @@ import { requireAuth } from '../middleware/requireAuth'
 import crypto from 'crypto'
 import { authenticator } from 'otplib'
 import { upsertTwoFactorSecret, getTwoFactorSecret } from '../services/twoFactor'
+import { z } from 'zod'
+import { validateBody } from '../middleware/validate'
 
 export const authRouter = Router()
 
@@ -42,6 +44,43 @@ authRouter.post('/register', async (req, res) => {
   if (upErr) return res.status(400).json({ error: 'profile_create_failed', details: upErr.message })
 
   // For refresh-token handling in frontend, we will require explicit login to get session.
+  return res.json({ ok: true, userId })
+})
+
+// Replace previous simplistic register with validated body handling
+const RegisterSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(['student', 'teacher', 'admin']).optional(),
+  name: z.string().max(200).optional().nullable(),
+})
+
+authRouter.post('/register', validateBody(RegisterSchema), async (req, res) => {
+  const { email, password, role, name } = req.body as z.infer<typeof RegisterSchema>
+
+  const signUpRole = role || 'student'
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { role: signUpRole, name: name || null },
+  })
+
+  if (error) return res.status(400).json({ error: 'register_failed', details: error.message })
+
+  // Create profile row
+  const userId = data.user.id
+  const { error: upErr } = await supabaseAdmin.from('profiles').insert({
+    id: userId,
+    name: name || null,
+    role: signUpRole,
+    country: null,
+    phone: null,
+    avatar: null,
+  })
+
+  if (upErr) return res.status(400).json({ error: 'profile_create_failed', details: upErr.message })
+
   return res.json({ ok: true, userId })
 })
 

@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express'
 import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
 import crypto from 'crypto'
+import { z } from 'zod'
+import { validateBody } from '../middleware/validate'
 
 export const paymentsRouter = Router()
 
@@ -60,7 +62,15 @@ async function handleCreate(req: Request, res: Response) {
   return res.json({ ok: true, provider: prov, payment_ref: paymentRef, init })
 }
 
-paymentsRouter.post('/create', handleCreate)
+const CreatePaymentSchema = z.object({
+  provider: z.enum(['stripe', 'paystack']),
+  amount: z.number().positive(),
+  currency: z.string().min(3).max(4).optional(),
+  student_id: z.string().uuid().optional().nullable(),
+  metadata: z.any().optional(),
+})
+
+paymentsRouter.post('/create', validateBody(CreatePaymentSchema), handleCreate)
 
 // Optional: create payment for authenticated student (dashboard)
 paymentsRouter.post('/create/me', requireAuth, async (req, res) => {

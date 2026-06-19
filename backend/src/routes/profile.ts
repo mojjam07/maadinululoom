@@ -28,16 +28,23 @@ profileRouter.get('/:id', requireAuth, async (req, res) => {
   return res.json({ profile: data ?? null })
 })
 
-profileRouter.patch('/:id', requireAuth, async (req, res) => {
+import { z } from 'zod'
+import { validateBody } from '../middleware/validate'
+
+const ProfilePatchSchema = z.object({
+  name: z.string().max(200).nullable().optional(),
+  role: z.enum(['student', 'teacher', 'admin']).optional(),
+  country: z.string().max(200).nullable().optional(),
+  phone: z.string().max(50).nullable().optional(),
+  avatar: z.string().max(1000).nullable().optional(),
+})
+
+profileRouter.patch('/:id', requireAuth, validateBody(ProfilePatchSchema), async (req, res) => {
   const { id } = req.params
   const userId = (req as any).auth.userId
   if (id !== userId) return res.status(403).json({ error: 'forbidden' })
 
-  const allowed = ['name', 'role', 'country', 'phone', 'avatar']
-  const patch: Record<string, unknown> = {}
-  for (const k of allowed) {
-    if (k in req.body) patch[k] = (req.body as any)[k]
-  }
+  const patch: Record<string, unknown> = req.body
 
   // Use upsert to create the profile row if it doesn't exist yet (client-side signups may not create it)
   const upsertBody = { id, ...(patch as Record<string, unknown>) }
