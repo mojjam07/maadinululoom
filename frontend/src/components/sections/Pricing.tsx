@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { apiFetch } from '../../lib/api'
 
@@ -6,6 +6,19 @@ export default function Pricing() {
   const [amount, setAmount] = useState<number>(1000)
   const [currency, setCurrency] = useState<string>('NGN')
   const [loading, setLoading] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  // Mouse gradient follow effect
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    setPosition({ x, y })
+    cardRef.current.style.setProperty('--mouse-x', `${x}px`)
+    cardRef.current.style.setProperty('--mouse-y', `${y}px`)
+  }
 
   async function initPayment(provider: 'stripe' | 'paystack') {
     try {
@@ -13,7 +26,6 @@ export default function Pricing() {
       const { data } = await supabase.auth.getSession()
       const session = data.session
       if (!session) {
-        // Ask user to login/register before donating
         if (confirm('To process donations please sign in or register. Go to register?')) {
           window.location.href = '/register'
         }
@@ -60,11 +72,21 @@ export default function Pricing() {
         </div>
 
         <div className="pricing-grid">
-          <div className="price-card support fade-up">
+          <div
+            ref={cardRef}
+            className="price-card support fade-up price-card-interactive"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => {
+              if (cardRef.current) {
+                cardRef.current.style.setProperty('--mouse-x', '50%')
+                cardRef.current.style.setProperty('--mouse-y', '50%')
+              }
+            }}
+          >
             <div className="price-badge">🤲 دعم المشروع</div>
             <div style={{ marginTop: 30 }}>
               <div className="price-label">اختر المبلغ والعملة</div>
-              <div className="price-amount">
+              <div className="price-amount price-amount-glow">
                 {currency === 'NGN' ? '₦' : '$'}{amount}
                 <span className="price-period">/تبرع</span>
               </div>
@@ -103,6 +125,8 @@ export default function Pricing() {
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
+                className="price-input-enhance"
+                placeholder="Enter amount"
                 style={{ width: 140, padding: '8px 10px' }}
               />
             </div>
@@ -120,8 +144,8 @@ export default function Pricing() {
             </ul>
 
             <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="btn-primary" disabled={loading} onClick={() => initPayment('paystack')}>دفع عبر Paystack</button>
-              <button className="btn-primary" disabled={loading} onClick={() => initPayment('stripe')}>دفع عبر Stripe</button>
+              <button className="btn-primary btn-payment" disabled={loading} onClick={() => initPayment('paystack')}>دفع عبر Paystack</button>
+              <button className="btn-primary btn-payment" disabled={loading} onClick={() => initPayment('stripe')}>دفع عبر Stripe</button>
             </div>
           </div>
         </div>

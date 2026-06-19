@@ -15,6 +15,7 @@ export default function Testimonials() {
   const [items, setItems] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     let mounted = true
@@ -36,6 +37,21 @@ export default function Testimonials() {
     }
   }, [])
 
+  // Auto-advance carousel every 5 seconds
+  useEffect(() => {
+    if (items.length === 0) return
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % items.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [items.length])
+
+  const visibleItems = items.length > 0 ? [
+    items[(currentIndex - 1 + items.length) % items.length],
+    items[currentIndex],
+    items[(currentIndex + 1) % items.length],
+  ] : []
+
   return (
     <section className="testimonials" id="testimonials">
       <div className="section-inner">
@@ -51,28 +67,73 @@ export default function Testimonials() {
           <div style={{ marginTop: 40, opacity: 0.95, textAlign: 'center', padding: '0 12px' }}>
             Failed to load testimonials: {error}
           </div>
+        ) : items.length === 0 ? (
+          <div style={{ marginTop: 40, opacity: 0.8, textAlign: 'center' }}>No testimonials yet.</div>
         ) : (
-
-          <div className="test-grid">
-            {items.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', opacity: 0.8, textAlign: 'center' }}>No testimonials yet.</div>
-            ) : (
-              items.map((t, idx) => (
-                <div key={t.created_at + idx} className="test-card fade-up">
-                  <div className="test-stars">{t.stars ? '★★★★★' : '★★★★★'}</div>
-                  <p className="test-text">{t.text}</p>
-                  <div className="test-author">
-                    <div className="test-avatar">{t.avatar || '🙂'}</div>
-                    <div>
-                      <div className="test-name">{t.name || 'Student'}</div>
-                      <div className="test-country">
-                        <span className="country-badge">{t.country || '—'}</span> — {t.role || 'Student'}
+          <div className="testimonials-carousel">
+            <div className="carousel-track">
+              {visibleItems.map((t, idx) => {
+                const isCenter = idx === 1
+                return (
+                  <div
+                    key={t.created_at + idx}
+                    className={`test-card carousel-card ${isCenter ? 'center' : ''} fade-up`}
+                    style={{
+                      opacity: isCenter ? 1 : 0.5,
+                      transform: isCenter ? 'scale(1)' : 'scale(0.88)',
+                      transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                  >
+                    <div className="test-stars">{t.stars ? '★★★★★' : '★★★★★'}</div>
+                    <p className="test-text">{t.text}</p>
+                    <div className="test-author">
+                      <div className="test-avatar">{t.avatar || '🙂'}</div>
+                      <div>
+                        <div className="test-name">{t.name || 'Student'}</div>
+                        <div className="test-country">
+                          <span className="country-badge">{t.country || '—'}</span> — {t.role || 'Student'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                )
+              })}
+            </div>
+
+            {/* Carousel controls */}
+            <div className="carousel-controls">
+              <button
+                className="carousel-btn carousel-prev"
+                onClick={() => setCurrentIndex((prev) => (prev - 1 + items.length) % items.length)}
+                aria-label="Previous testimonial"
+              >
+                ←
+              </button>
+              <div className="carousel-dots">
+                {items.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`carousel-dot ${idx === currentIndex ? 'active' : ''}`}
+                    onClick={() => setCurrentIndex(idx)}
+                    style={{
+                      background: idx === currentIndex ? 'var(--gold)' : 'rgba(212,160,23,0.3)',
+                      cursor: 'pointer',
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      transition: 'all 0.3s',
+                    }}
+                  />
+                ))}
+              </div>
+              <button
+                className="carousel-btn carousel-next"
+                onClick={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+                aria-label="Next testimonial"
+              >
+                →
+              </button>
+            </div>
           </div>
         )}
       </div>

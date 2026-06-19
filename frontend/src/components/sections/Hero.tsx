@@ -1,9 +1,65 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function Hero() {
+  const bgRef = useRef<HTMLDivElement | null>(null)
+  const leftRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    // Parallax background subtle movement
+    const onScroll = () => {
+      if (!bgRef.current) return
+      const y = window.scrollY
+      // translate a small amount for parallax
+      bgRef.current.style.transform = `translateY(${y * -0.06}px)`
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    // Animate stat numbers when left column becomes visible
+    const el = leftRef.current
+    if (!el) return
+    const nums = Array.from(el.querySelectorAll<HTMLElement>('.stat-num[data-target]'))
+
+    const startCounters = () => {
+      nums.forEach((n) => {
+        const target = parseInt(n.dataset.target || '0', 10)
+        if (isNaN(target) || target <= 0) return
+        let current = 0
+        const duration = 1200
+        const start = performance.now()
+        const step = (t: number) => {
+          const progress = Math.min((t - start) / duration, 1)
+          n.textContent = Math.floor(progress * target).toString()
+          if (progress < 1) requestAnimationFrame(step)
+          else n.textContent = target.toString()
+        }
+        requestAnimationFrame(step)
+      })
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            startCounters()
+            obs.disconnect()
+          }
+        }
+      },
+      { threshold: 0.25 },
+    )
+
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   return (
     <section className="hero" id="home">
-      <div className="hero-bg">
+      <div ref={bgRef} className="hero-bg">
         <svg viewBox="0 0 1400 800" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
@@ -24,7 +80,7 @@ export default function Hero() {
       <div className="geo-float" />
 
       <div className="hero-content">
-        <div className="hero-left fade-up">
+        <div ref={leftRef} className="hero-left fade-up">
           <div className="hero-badge">🌟 علم الانسان مالـم يعلم</div>
           <h1 className="hero-ar">
             تعلم<span> العربية</span> والعلوم الإسلامية
@@ -44,11 +100,11 @@ export default function Hero() {
 
           <div className="hero-stats">
             <div className="stat-badge">
-              <div className="stat-num">500+</div>
+              <div className="stat-num" data-target="500">0</div>
               <div className="stat-lbl">طالب نشط</div>
             </div>
             <div className="stat-badge">
-              <div className="stat-num">10+</div>
+              <div className="stat-num" data-target="10">0</div>
               <div className="stat-lbl">مادة دراسية</div>
             </div>
             <div className="stat-badge">
@@ -58,7 +114,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="hero-right">
+        <div className="hero-right fade-up">
           <div className="hero-illustration">
             <div className="hero-card-main">
               <div className="hero-icon-ring">💖</div>
