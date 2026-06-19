@@ -52,6 +52,17 @@ export default function MaadinAluloomLandingPage() {
 
   return (
     <>
+      <script type="application/ld+json">
+        {`{
+          "@context": "https://schema.org",
+          "@type": "EducationalOrganization",
+          "name": "معدن العلوم",
+          "url": "https://maadinul.vercel.app",
+          "logo": "https://maadinul.vercel.app/og-image.png",
+          "description": "Online Islamic and Arabic learning platform offering courses, live classes, and certifications.",
+          "sameAs": []
+        }`}
+      </script>
       <TopNav />
       <main>
         <Hero />
