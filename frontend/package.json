@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "generate-og": "tsx scripts/generate_og.ts",
+    "generate-sitemap": "tsx scripts/generate_sitemap.ts",
+    "build": "tsx scripts/generate_og.ts && tsx scripts/generate_sitemap.ts && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
     "framer-motion": "^12.40.0",
+    "sharp": "^0.32.4",
     "i18next": "^26.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
