@@ -41,13 +41,16 @@ async function handleCreate(req: Request, res: Response) {
     metadata: Object.assign({ initialized_at: new Date().toISOString() }, metadata || {}),
   }
 
-  let insertErr = null
-  if (student_id && typeof student_id === 'string') {
-    const { error } = await supabaseAdmin.from('payments').insert(payload)
-    insertErr = error
-  }
+  // Validate student exists if provided
+  if (student_id) {
+    if (typeof student_id !== 'string' || student_id.trim().length === 0) return res.status(400).json({ error: 'invalid_student_id' })
+    const { data: profile, error: profErr } = await supabaseAdmin.from('profiles').select('id').eq('id', student_id).maybeSingle()
+    if (profErr) return res.status(500).json({ error: 'profile_lookup_failed', details: profErr.message })
+    if (!profile) return res.status(400).json({ error: 'student_not_found' })
 
-  if (insertErr) return res.status(400).json({ error: 'payment_insert_failed', details: insertErr.message })
+    const { error } = await supabaseAdmin.from('payments').insert(payload)
+    if (error) return res.status(400).json({ error: 'payment_insert_failed', details: error.message })
+  }
 
   // Provider initialization stub: real integration should call provider SDKs.
   const init = prov === 'stripe'

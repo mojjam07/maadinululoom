@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 import { config } from './config.js';
 import { apiRouter } from './routes';
@@ -8,6 +9,24 @@ import { apiRouter } from './routes';
 export function createServer() {
   const app = express();
 
+  // Rate limiting: general API limiter
+  const apiLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+
+  // Stricter limiter for auth endpoints
+  const authLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+
+  // Apply general limiter to API surface
+  app.use('/api', apiLimiter)
   // Security headers
   app.use(helmet());
 
@@ -57,6 +76,9 @@ export function createServer() {
 
   // Apply CORS
   app.use(corsMiddleware);
+
+  // Apply auth-specific rate limiting
+  app.use('/api/auth', authLimiter)
 
   // Handle preflight requests
   app.options('*', corsMiddleware);
