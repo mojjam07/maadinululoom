@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser'
+import csurf from 'csurf'
 import rateLimit from 'express-rate-limit';
 
 import { config } from './config.js';
@@ -102,6 +104,22 @@ export function createServer() {
       limit: '10mb',
     })
   );
+
+  // Cookie parser required for CSRF tokens stored in cookies
+  app.use(cookieParser())
+
+  // CSRF protection for API routes except webhooks (webhooks use raw body)
+  const csrfProtection = csurf({ cookie: true })
+  app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/webhooks')) return next()
+    return csrfProtection(req, res, next)
+  })
+
+  // CSRF token endpoint for clients
+  app.get('/api/csrf-token', (req, res) => {
+    // @ts-ignore
+    return res.json({ csrfToken: req.csrfToken ? req.csrfToken() : null })
+  })
 
   // Health check
   app.get('/healthz', (_req, res) => {
