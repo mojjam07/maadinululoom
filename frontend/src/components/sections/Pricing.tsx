@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { apiFetch } from '../../lib/api'
 
@@ -7,7 +7,6 @@ export default function Pricing() {
   const [currency, setCurrency] = useState<string>('NGN')
   const [loading, setLoading] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
 
   // Mouse gradient follow effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -15,7 +14,6 @@ export default function Pricing() {
     const rect = cardRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
-    setPosition({ x, y })
     cardRef.current.style.setProperty('--mouse-x', `${x}px`)
     cardRef.current.style.setProperty('--mouse-y', `${y}px`)
   }

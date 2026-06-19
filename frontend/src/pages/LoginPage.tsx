@@ -3,9 +3,11 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { apiFetch } from '../lib/api'
+import { useLanguage } from '../components/i18n/useLanguage'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { dir } = useLanguage()
   const redirected = useRef(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -82,9 +84,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="maadin-auth-bg">
+    <div className="maadin-auth-bg" style={{ direction: dir, textAlign: dir === 'rtl' ? 'right' : 'left' }}>
       <div className="maadin-auth-wrap">
-        <div className="maadin-auth-grid">
+        <div className="maadin-auth-grid" style={{ direction: dir }}>
           <div className="maadin-auth-side">
             <div className="maadin-auth-badge">✨ Welcome to معدن العلوم</div>
             <h2 className="maadin-auth-title" style={{ marginBottom: 10 }}>

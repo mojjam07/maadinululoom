@@ -28,11 +28,10 @@ export default function Hero() {
       nums.forEach((n) => {
         const target = parseInt(n.dataset.target || '0', 10)
         if (isNaN(target) || target <= 0) return
-        let current = 0
         const duration = 1200
         const start = performance.now()
-        const step = (t: number) => {
-          const progress = Math.min((t - start) / duration, 1)
+        const step = (timeElapsed: number) => {
+          const progress = Math.min((timeElapsed - start) / duration, 1)
           n.textContent = Math.floor(progress * target).toString()
           if (progress < 1) requestAnimationFrame(step)
           else n.textContent = target.toString()

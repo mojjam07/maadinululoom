@@ -341,9 +341,13 @@ footer{background:#040f0a;color:rgba(255,255,255,0.65);padding:60px 5% 30px}
   align-items:center;
 }
 
+[dir="rtl"] .maadin-auth-grid {
+  grid-template-columns: 0.95fr 1.05fr;
+  direction: rtl;
+}
+
 .maadin-auth-side{
   color:var(--white);
-  text-align:right;
 }
 
 .maadin-auth-badge{
@@ -424,7 +428,6 @@ footer{background:#040f0a;color:rgba(255,255,255,0.65);padding:60px 5% 30px}
   font-size:14px;
   outline:none;
   transition:border-color .2s, box-shadow .2s;
-  direction:rtl;
 }
 
 .maadin-input:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(212,160,23,0.18)}
@@ -441,7 +444,6 @@ footer{background:#040f0a;color:rgba(255,255,255,0.65);padding:60px 5% 30px}
   font-size:14px;
   outline:none;
   transition:border-color .2s, box-shadow .2s;
-  direction:rtl;
 }
 
 .maadin-auth-select:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(212,160,23,0.18)}
