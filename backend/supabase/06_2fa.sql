@@ -9,6 +9,9 @@ create table if not exists public.two_factor_secrets (
 
 create index if not exists two_factor_user_idx on public.two_factor_secrets(user_id);
 
+-- Ensure one secret per user
+alter table public.two_factor_secrets add constraint two_factor_user_uidx unique (user_id);
+
 -- RLS: allow admin/service-role to manage; users cannot read/write these rows directly
 alter table public.two_factor_secrets enable row level security;
 

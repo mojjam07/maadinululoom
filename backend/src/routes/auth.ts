@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../supabaseAdmin'
 import { requireAuth } from '../middleware/requireAuth'
 import crypto from 'crypto'
 import { authenticator } from 'otplib'
+import { upsertTwoFactorSecret, getTwoFactorSecret } from '../services/twoFactor'
 
 export const authRouter = Router()
 
@@ -92,21 +93,11 @@ authRouter.post('/enable-2fa', requireAuth, async (req, res) => {
 
     const stored = Buffer.concat([iv, tag, encrypted]).toString('base64')
 
-    // Store in user_metadata.two_fa on the Supabase user via admin API if available
-    // @ts-ignore
-    if (typeof supabaseAdmin.auth.admin.updateUserById === 'function') {
-      // @ts-ignore
-      const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        user_metadata: { two_fa: { secret: stored } }
-      })
-      if (error) return res.status(500).json({ error: 'store_failed', details: error.message })
-    } else if (typeof supabaseAdmin.auth.updateUser === 'function') {
-      // fallback method name
-      // @ts-ignore
-      const { data, error } = await supabaseAdmin.auth.updateUser({ id: userId, user_metadata: { two_fa: { secret: stored } } })
-      if (error) return res.status(500).json({ error: 'store_failed', details: error.message })
-    } else {
-      return res.status(501).json({ error: 'not_supported', message: 'Admin update user not available. Cannot store 2FA secret.' })
+    // Store encrypted secret in server-managed table
+    try {
+      await upsertTwoFactorSecret(userId, stored)
+    } catch (e) {
+      return res.status(500).json({ error: 'store_failed', details: (e as Error).message })
     }
 
     return res.json({ ok: true, otpauth })
@@ -122,12 +113,14 @@ authRouter.post('/verify-2fa', requireAuth, async (req, res) => {
     const code = String((req.body as any)?.code || '')
     if (!code) return res.status(400).json({ error: 'missing_code' })
 
-    // Fetch stored secret from admin user metadata
-    // @ts-ignore
-    const { data: user, error: userErr } = await supabaseAdmin.auth.getUserById ? await supabaseAdmin.auth.getUserById(userId) : await supabaseAdmin.auth.getUser(userId)
-    if (userErr) return res.status(500).json({ error: 'user_lookup_failed', details: (userErr as Error).message })
+    // Fetch encrypted secret from server-managed table
+    let storedB64: string | null = null
+    try {
+      storedB64 = await getTwoFactorSecret(userId)
+    } catch (e) {
+      return res.status(500).json({ error: 'secret_lookup_failed', details: (e as Error).message })
+    }
 
-    const storedB64 = (user?.user_metadata as any)?.two_fa?.secret
     if (!storedB64) return res.status(400).json({ error: '2fa_not_enabled' })
 
     const buf = Buffer.from(storedB64, 'base64')
