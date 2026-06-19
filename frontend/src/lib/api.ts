@@ -61,10 +61,32 @@ export async function apiFetch<T>(
     throw new Error(`Invalid API URL constructed: ${url}`)
   }
 
-  const res = await fetch(url, {
+  // Include credentials so cookie-based CSRF token can be set/read
+  const fetchOpts: RequestInit = {
     ...init,
     headers,
-  })
+    credentials: 'include',
+  }
+
+  // For mutating requests, fetch a CSRF token and include it as a header
+  const method = (fetchOpts.method || 'GET').toUpperCase()
+  if (method !== 'GET' && method !== 'HEAD') {
+    try {
+      const tokenRes = await fetch(API_BASE ? `${API_BASE}/api/csrf-token` : '/api/csrf-token', {
+        credentials: 'include',
+      })
+      if (tokenRes.ok) {
+        const json = await tokenRes.json()
+        const csrf = json?.csrfToken
+        if (csrf) (fetchOpts.headers as Record<string, string>)['x-csrf-token'] = csrf
+      }
+    } catch (e) {
+      // If CSRF token fetch fails, continue — server may be configured differently
+      console.warn('Failed to fetch CSRF token', e)
+    }
+  }
+
+  const res = await fetch(url, fetchOpts)
 
   let parsed: unknown
 
