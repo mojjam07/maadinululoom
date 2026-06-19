@@ -9,6 +9,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
+    "migrate": "tsx scripts/run_migrations.ts",
     "test:webhooks": "tsx test/run_webhook_tests.ts",
     "test:2fa": "tsx test/run_2fa_local_tests.ts"
   },
@@ -28,8 +29,9 @@
     "@supabase/supabase-js": "^2.45.1",
     "stripe": "^12.0.0",
     "express-rate-limit": "^6.8.0",
-    "body-parser": "^1.20.2"
-    ,"otplib": "^12.0.1"
+    "body-parser": "^1.20.2",
+    "otplib": "^12.0.1",
+    "pg": "^8.11.0"
   }
 }
 

@@ -85,3 +85,18 @@ A learning platform that connects students with teachers through subjects, lesso
 - `PROJECT_FUNCTIONALITIES_REPORT.txt` contains the current end-to-end functional coverage and implementation notes.
 - `TODO.md` tracks remaining implementation phases.
 
+### Local Postgres + Migrations
+
+You can use Docker Compose to run a local Postgres and the backend service:
+
+```bash
+docker compose up -d
+cd backend
+# Wait for Postgres, then run migrations
+npm install
+npm run migrate
+npm run dev
+```
+
+The migrations are in `backend/supabase/*.sql`. The migration runner records applied files in `public.schema_migrations`.
+

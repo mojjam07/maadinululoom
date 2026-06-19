@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm ci
+      - name: Run TypeScript compile
+        run: |
+          cd backend
+          npm run build
+      - name: Run webhook smoke tests
+        run: |
+          cd backend
+          npm run test:webhooks
+      - name: Run 2FA local tests
+        run: |
+          cd backend
+          npm run test:2fa
