@@ -10,7 +10,7 @@
     "dev": "vite",
     "generate-og": "tsx scripts/generate_og.ts",
     "generate-sitemap": "tsx scripts/generate_sitemap.ts",
-    "build": "tsx scripts/generate_og.ts && tsx scripts/generate_sitemap.ts && tsc -b && npm run build",
+    "build": "tsx scripts/generate_og.ts && tsx scripts/generate_sitemap.ts && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
