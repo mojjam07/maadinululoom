@@ -23,4 +23,17 @@ exports.config = {
     supabaseUrl: must("SUPABASE_URL"),
     supabaseServiceRoleKey: must("SUPABASE_SERVICE_ROLE_KEY"),
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
+    jwtSecret: process.env.JWT_SECRET || null,
+    // Webhook secrets (optional in development, required in production)
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || null,
+    paystackWebhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || null,
 };
+// Enforce presence of webhook secrets in production to avoid silent insecurity
+if (process.env.NODE_ENV === 'production') {
+    if (!exports.config.stripeWebhookSecret)
+        throw new Error('Missing STRIPE_WEBHOOK_SECRET in production');
+    if (!exports.config.paystackWebhookSecret)
+        throw new Error('Missing PAYSTACK_WEBHOOK_SECRET in production');
+    if (!exports.config.jwtSecret)
+        throw new Error('Missing JWT_SECRET in production');
+}

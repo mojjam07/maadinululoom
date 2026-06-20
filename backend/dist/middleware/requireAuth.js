@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireAuth = requireAuth;
 const supabaseAdmin_1 = require("../supabaseAdmin");
 // Verifies Supabase Auth access token by asking Supabase admin for the user.
-// This avoids needing local JWT verification dependencies.
+// Attaches userId, role and email_verified to `req.auth` for downstream handlers.
 async function requireAuth(req, res, next) {
     try {
         const auth = req.headers.authorization;
@@ -13,10 +13,15 @@ async function requireAuth(req, res, next) {
         const { data, error } = await supabaseAdmin_1.supabaseAdmin.auth.getUser(token);
         if (error || !data?.user)
             return res.status(401).json({ error: 'invalid_token' });
-        req.auth = { userId: data.user.id };
+        const userId = data.user.id;
+        // Fetch profile row to get role and other metadata
+        const { data: profile, error: profErr } = await supabaseAdmin_1.supabaseAdmin.from('profiles').select('id,role').eq('id', userId).maybeSingle();
+        const role = profile?.role ?? data.user.user_metadata?.role ?? null;
+        req.auth = { userId, role, emailVerified: !!data.user.email_confirmed_at };
         next();
     }
-    catch {
+    catch (e) {
+        console.error('requireAuth error', e);
         return res.status(401).json({ error: 'unauthorized' });
     }
 }

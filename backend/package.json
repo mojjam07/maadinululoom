@@ -4,6 +4,10 @@
   "private": true,
   "type": "commonjs",
 
+  "engines": {
+    "node": ">=18"
+  },
+
 
   "scripts": {
     "dev": "tsx watch src/index.ts",
